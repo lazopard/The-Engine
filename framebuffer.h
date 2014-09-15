@@ -22,7 +22,9 @@ public:
   void DrawPoint(int u, int v, int psize, unsigned int color);
   void DrawSegment(float u0f, float v0f, float u1f, float v1f, 
                    unsigned int color);
-  void DrawCircle(float cx, float cy, float r, float color);
+  void DrawCircle(float cx, float cy, float r, unsigned int color);
+  void DrawCircleWithThickness(float cx, float cy, float r, float thickness, unsigned int color);
+  void FillCircle(float cx, float cy, float r, unsigned int color);
   void AdjustBrightness(float nb);
   void DetectEdges();
   void Convolve33(M33 kernel, FrameBuffer *& fb1);

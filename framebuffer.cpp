@@ -5,13 +5,15 @@
 #include <cmath>
 #include <tiffio.h>
 
+unsigned int *opix = NULL;
+
 FrameBuffer::FrameBuffer(int u0, int v0, 
   int _w, int _h) : Fl_Gl_Window(u0, v0, _w, _h, 0) {
 
   w = _w;
   h = _h;
   pix = new unsigned int[w*h];
-
+  //opix = new unsigned int[w*h];
 }
 
 FrameBuffer::FrameBuffer(unsigned int *raster, int u0, int v0, unsigned int _w, unsigned int _h) : Fl_Gl_Window(u0, v0, _w, _h, 0) {
@@ -19,6 +21,7 @@ FrameBuffer::FrameBuffer(unsigned int *raster, int u0, int v0, unsigned int _w, 
     h = _h;
     pix = new unsigned int[w*h];
     _TIFFmemcpy(pix, raster, (w*h) * sizeof(uint32));
+   // _TIFFmemcpy(opix, raster, (w*h) * sizeof(uint32));
 }
 
 void FrameBuffer::draw() {
@@ -108,11 +111,74 @@ void FrameBuffer::DrawSegment(float u0f, float v0f, float u1f, float v1f,
 
 }
 
-/*
-void FrameBuffer::DrawCircle(float c0, float c1, float r1) {
-
+//8-way symmetry circle
+void FrameBuffer::DrawCircle(float cx, float cy, float r, unsigned int color) {
+    SetSafe(cx + r, cy, color);
+    SetSafe(cx, cx + r, color);
+    SetSafe(cx, cy - r, color);
+    float x = 1.0f;
+    float y = r;
+    y = sqrt((r*r) - 1) + 0.5;
+    while (x < y) {
+        SetSafe(cx + y, cy - x, color);
+        SetSafe(cx - y, cy + x, color);
+        SetSafe(cx - y, cy - x, color);
+        SetSafe(cx + x, cy + y, color);
+        SetSafe(cx + x, cy - y, color);
+        SetSafe(cx - x, cy + y, color);
+        SetSafe(cx - x, cy - y, color);
+        SetSafe(cx + y, cy + x, color);
+        y = sqrt((r*r) - (x*x)) + 0.5;
+        x++;
+    }
+    if (abs(x - y) < 0.01) {
+        SetSafe(cx + x, cy + y, color);
+        SetSafe(cx + x, cy - y, color);
+        SetSafe(cx - x, cy + y, color);
+        SetSafe(cx - x, cy - y, color);
+    }
 }
-*/
+
+//8-way symmetry circle
+void FrameBuffer::DrawCircleWithThickness(float cx, float cy, float r, float thickness, unsigned int color) {
+    FillCircle(cx + r, cy, thickness, color);
+    FillCircle(cx, cx + r, thickness, color);
+    FillCircle(cx, cy - r, thickness, color);
+    float x = 1.0f;
+    float y = r;
+    y = sqrt((r*r) - 1) + 0.5;
+    while (x < y) {
+        FillCircle(cx + y, cy - x, thickness, color);
+        FillCircle(cx - y, cy + x, thickness, color);
+        FillCircle(cx - y, cy - x, thickness, color);
+        FillCircle(cx + x, cy + y, thickness, color);
+        FillCircle(cx + x, cy - y, thickness, color);
+        FillCircle(cx - x, cy + y, thickness, color);
+        FillCircle(cx - x, cy - y, thickness, color);
+        FillCircle(cx + y, cy + x, thickness, color);
+        y = sqrt((r*r) - (x*x)) + 0.5;
+        x++;
+    }
+    if (abs(x - y) < 0.01) {
+        FillCircle(cx + x, cy + y, thickness, color);
+        FillCircle(cx + x, cy - y, thickness, color);
+        FillCircle(cx - x, cy + y, thickness, color);
+        FillCircle(cx - x, cy - y, thickness, color);
+    }
+}
+
+void FrameBuffer::FillCircle(float cx, float cy, float r, unsigned int color) {
+
+    for(float x = cx - r; x < cx + r; x++) {
+        for(float y = cy - r; y < cy + r; y++) {
+            float dx = cx - x;
+            float dy = cy - y;
+            if ((dx*dx + dy*dy) <= (r*r)) {
+                SetSafe(x,y,color);
+            }
+        }
+    }
+}
 
 void FrameBuffer::Convolve33(M33 kernel, FrameBuffer *&fb1) {
 
@@ -134,3 +200,14 @@ void FrameBuffer::Convolve33(M33 kernel, FrameBuffer *&fb1) {
   }
 
 }
+
+/*
+void FrameBuffer::AdjustBrightness(float b) { // 0 <= b <= 2
+
+    for(int i = 0; i < w*h; i++) {
+        pix[i] = opix[i] + (opix[i]*b);
+    }
+    show();
+}
+*/
+
