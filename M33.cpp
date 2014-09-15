@@ -25,25 +25,27 @@ M33::M33(float a1, float a2, float a3,
   rows[2] = V3(a7, a8, a9);
 }
 
-M33::M33(unsigned axis, float theta) {
+M33::M33(V3 axis, float theta) {
     float rad = theta * (M_PI/180);
-    if (axis == 0) {
+    if (axis == V3(1,0,0)) {
         rows[0] = V3(1, 0, 0);
         rows[1] = V3(0, cos(rad), -sin(rad));
         rows[2] = V3(0, sin(rad), cos(rad));
     }
-    else if (axis == 1) {
+    else if (axis == V3(0,1,0)) {
         rows[0] = V3(cos(rad), 0, sin(rad));
         rows[1] = V3(0, 1, 0);
         rows[2] = V3(-sin(rad), 0, cos(rad));
     }
-    else if (axis == 2) {
+    else if (axis == V3(0,0,1)) {
         rows[0] = V3(cos(rad), -sin(rad), 0);
         rows[1] = V3(sin(rad), cos(rad), 0);
         rows[2] = V3(0, 1, 1);
     }
     else {
-        exit(1);
+        M33(0, -axis[2], axis[1],
+            axis[2], 0, -axis[0],
+            -axis[1], axis[0], 0);
     }
 }
 
@@ -83,10 +85,13 @@ M33 M33::transpose() {
   return m;
 }
 
+M33 M33::operator*(float c) {
+    return M33(rows[0] * c, rows[1] * c, rows[2] * c);
+}
+
 V3 M33::operator*(V3 v) {
   return V3(rows[0]*v, rows[1]*v, rows[2]*v);
 }
-
 
 M33 M33::operator*(M33 m1) {
     M33 ret;
@@ -95,6 +100,23 @@ M33 M33::operator*(M33 m1) {
     ret.setColumn(1, m0*m1.getColumn(1));
     ret.setColumn(2, m0*m1.getColumn(2));
     return ret;
+}
+
+M33 M33::operator+(M33 m1) {
+    return M33(rows[0] + m1[0], rows[1] + m1[1], rows[2] + m1[2]);
+}
+
+M33 M33::normalize() {
+    M33 m;
+
+    V3 vs = rows[0] + rows[1] + rows[2];
+    float sum = vs[0] + vs[1] + vs[2];
+
+    m[0] = rows[0] / sum;
+    m[1] = rows[1] / sum;
+    m[2] = rows[2] / sum;
+
+    return m;
 }
 
 ostream& operator<<(std::ostream& out, M33& a) {

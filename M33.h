@@ -17,7 +17,7 @@ public:
   M33();
   M33(V3, V3, V3);
   M33(float); // Diagonal Constructor
-  M33(unsigned, float); // Rotation Constructor
+  M33(V3, float); // Rotation Constructor
   M33(float a1, float a2, float a3,
       float a4, float a5, float a6,
       float a7, float a8, float a9);
@@ -32,8 +32,12 @@ public:
   // Matrix Operations
   M33 inverse();
   M33 transpose();
+  M33 normalize();
+  M33 operator*(float);
   V3 operator*(V3); 
   M33 operator*(M33);
+
+  M33 operator+(M33);
 
   // I/O
   friend ostream& operator<<(ostream&, M33&);

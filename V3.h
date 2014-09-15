@@ -36,6 +36,8 @@ public:
   float operator*(V3); // Dot product
   V3 operator%(V3); // Cross product
 
+  void setFromColor(unsigned int color);
+  unsigned getColor();
 
   //Rotation
   /* Rotate point about arbitrary axis. Parameters are 2 points to define axis and a 
@@ -43,7 +45,7 @@ public:
    V3 rotatePoint(V3, V3, float);
 
   /* Rotate vector about arbitrary axis */
-  //V3 rotate(float, float, V3&);
+  V3 rotate(V3, float);
 
   // I/O
   friend ostream& operator<<(ostream&, V3&); //output

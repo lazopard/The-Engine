@@ -1,0 +1,71 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0302 
+header_name {.h} 
+code_name {.cxx}
+class GUI {open
+} {
+  decl {\#include "scene.h"} {private local
+  }
+  Function {GUI()} {open
+  } {
+    Fl_Window uiw {
+      label GUI open
+      xywh {2076 45 295 230} type Double visible
+    } {
+      Fl_Button {} {
+        label DBG
+        callback {DBG_cb()}
+        xywh {200 0 80 25} selection_color 72
+      }
+      Fl_Check_Button FlagB {
+        label Flag
+        callback {FlagB_cb()} selected
+        xywh {200 100 40 25} down_box DOWN_BOX value 1
+      }
+      Fl_Value_Slider BrightnessSlider {
+        label {Brighness %}
+        callback {brightness_cb()}
+        xywh {20 5 40 200} maximum 100 step 0.1 value 50 textsize 14
+      }
+      Fl_Button {} {
+        label {Edge Detection}
+        callback {detect_edges_cb()}
+        xywh {70 5 95 25}
+      }
+      Fl_Button {} {
+        label {Load file}
+        callback {load_cb()}
+        xywh {200 25 80 30}
+      }
+      Fl_Button {} {
+        label {Save file}
+        callback {save_cb()}
+        xywh {200 55 80 30}
+      }
+    }
+  }
+  Function {} {} {
+    code {scene = new Scene;} {}
+  }
+  Function {show()} {} {
+    code {uiw->show();} {}
+  }
+  Function {DBG_cb()} {} {
+    code {scene->DBG();} {}
+  }
+  Function {FlagB_cb()} {} {
+    code {scene->FlagB();} {}
+  }
+  Function {load_cb()} {} {
+    code {scene->loadImage();} {}
+  }
+  Function {save_cb()} {} {
+    code {scene->saveImage();} {}
+  }
+  Function {brightness_cb()} {} {
+    code {scene->changeBrightness();} {}
+  }
+  Function {detect_edges_cb()} {} {
+    code {scene->detectEdges();} {}
+  }
+} 

@@ -63,9 +63,9 @@ V3& V3::operator-=(V3 v) {
 }
 
 bool V3::operator==(V3 v) {
-    return xyz[0] == v[0] &&
-           xyz[1] == v[1] &&
-           xyz[2] == v[2];
+    return abs(xyz[0] - v[0]) < 0.0001 &&
+           abs(xyz[1] - v[1]) < 0.0001 &&
+           abs(xyz[2] - v[2]) < 0.0001;
 }
 
 bool V3::operator!=(V3 v) {
@@ -109,11 +109,13 @@ istream& operator>>(std::istream& in, V3& v) {
   return in;
 }
 
-
-/*
-V3 V3::rotateVector() {
+V3 V3::rotate(V3 a, float theta) {
+    V3 v = (*this);
+    M33 r_m(a.normalize(), theta);
+    r_m = M33(1) + (r_m * (sin(theta))) + (r_m * r_m * (2*sin(theta/2) * sin(theta/2)));
+    v = r_m * v;
+    return v;
 }
-*/
 
 V3 V3::rotatePoint(V3 o, V3 a, float theta) {
 
@@ -144,11 +146,48 @@ V3 V3::rotatePoint(V3 o, V3 a, float theta) {
     point = trans_matrix*(point - o);
 
     // Rotate about a by theta degrees
-    M33 r_m(closer_to, theta);
-    point = r_m*point;
+    M33 r_m(a.normalize(), theta);
+    r_m = M33(1) + (r_m * (sin(theta))) + (r_m * r_m * (2*sin(theta/2) * sin(theta/2)));
+    point = r_m * point;
 
     //Transform back to original coord system
     point = (trans_matrix.inverse()*point) + o;
     return point;
+}
+
+void V3::setFromColor(unsigned int color) {
+
+  V3 &v = *this;
+  v[0] = ((unsigned char*)&color)[0];
+  v[1] = ((unsigned char*)&color)[1];
+  v[2] = ((unsigned char*)&color)[2];
+  v = v / 255.0f;
+
+}
+
+unsigned V3::getColor() {
+
+  V3 &v = *this;
+  unsigned int red = (int) (v[0]*255.0f+0.5f);
+  unsigned int green = (int) (v[0]*255.0f+0.5f);
+  unsigned int blue = (int) (v[0]*255.0f+0.5f);
+
+  if (red < 0)
+    red = 0;
+  else if (red > 255)
+    red = 255;
+  if (green < 0)
+    green = 0;
+  else if (green > 255)
+    green = 255;
+  if (blue < 0)
+    blue = 0;
+  else if (blue > 255)
+    blue = 255;
+
+  unsigned int ret = 0xFF000000 + blue * 256 *256 + green * 256 + red;
+
+  return ret;
+
 }
 
