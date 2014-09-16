@@ -10,7 +10,7 @@ class GUI {open
   } {
     Fl_Window uiw {
       label GUI open
-      xywh {2076 45 295 230} type Double visible
+      xywh {777 44 295 234} type Double visible
     } {
       Fl_Button {} {
         label DBG
@@ -19,17 +19,17 @@ class GUI {open
       }
       Fl_Check_Button FlagB {
         label Flag
-        callback {FlagB_cb()} selected
+        callback {FlagB_cb()}
         xywh {200 100 40 25} down_box DOWN_BOX value 1
       }
       Fl_Value_Slider BrightnessSlider {
         label {Brighness %}
         callback {brightness_cb()}
-        xywh {20 5 40 200} maximum 100 step 0.1 value 50 textsize 14
+        xywh {25 15 35 170} maximum 100 step 0.1 value 50 textsize 14
       }
       Fl_Button {} {
         label {Edge Detection}
-        callback {detect_edges_cb()}
+        callback {detect_edges_cb()} selected
         xywh {70 5 95 25}
       }
       Fl_Button {} {
@@ -62,7 +62,8 @@ class GUI {open
   Function {save_cb()} {} {
     code {scene->saveImage();} {}
   }
-  Function {brightness_cb()} {} {
+  Function {brightness_cb()} {open
+  } {
     code {scene->changeBrightness();} {}
   }
   Function {detect_edges_cb()} {} {

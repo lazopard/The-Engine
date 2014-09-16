@@ -1,3 +1,1 @@
-Point p(12,43,7)
-Origin(1,3,4)
-Axis(4,7,6)
+3D graphics engine written from scratch in C/C++. 
