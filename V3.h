@@ -60,3 +60,10 @@ public:
   ~V3() { };
 };
 
+class AABB {
+    public:
+        V3 corners[2];
+        AABB(V3 firstPoint);
+        void AddPoint(V3 pt);
+};
+

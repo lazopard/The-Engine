@@ -11,26 +11,47 @@ Scene *scene;
 char filename[1024] = "";
 
 Scene::Scene() {
+    gui = new GUI();
+    gui->show();
 
-  gui = new GUI();
-  gui->show();
+    int u0 = 20;
+    int v0 = 50;
+    int sci = 2;
+    int w = sci*320;
+    int h = sci*240;
+    fb = new FrameBuffer(u0, v0, w, h);
+    fb->label("Framebuffer");
+    fb->show();
+    gui->uiw->position(fb->w+20+20, 50);
 
-  int u0 = 20;
-  int v0 = 50;
-  int sci = 2;
-  int w = sci*320;
-  int h = sci*240;
-  fb = new FrameBuffer(u0, v0, w, h);
-  fb->label("Framebuffer");
-  fb->show();
-  gui->uiw->position(fb->w+20+20, 50);
+    float hfov = 55.0f;
+    ppc = new PPC(hfov, w, h);
 
-  fb->Set(0xFFFFFFFF);
+    tmeshesN = 2;
+    tmeshes = new TMesh*[tmeshesN];
 
-  Render();
+    V3 center(7.0f, -10.0f, -65.0f);
+    V3 dims(20.0f, 10.0f, 45.0f);
+    unsigned int color = 0xFF00FF00;
+    tmeshes[0] = new TMesh(center, dims, color);
+    tmeshes[0]->enabled = false;
+
+    tmeshes[1] = new TMesh();
+    tmeshes[1]->LoadBin("geometry/teapot1k.bin");
+    V3 newCenter = V3(0.0f, 0.0f, -150.0f);
+    tmeshes[1]->Position(newCenter);
+
+    Render();
 }
 
 void Scene::Render() {
+    fb->Set(0xFFFFFFFF);
+    for (int tmi = 0; tmi < tmeshesN; tmi++) {
+        if (!tmeshes[tmi]->enabled)
+            continue;
+        tmeshes[tmi]->RenderWireframe(ppc, fb, 0xFF000000);
+        tmeshes[tmi]->RenderPoints(ppc, fb, 3);
+    }
     fb->redraw();
 }
 
@@ -62,17 +83,6 @@ void Scene::DBG() {
     Render();
 
     return;
-}
-
-void Scene::FlagB () {
-
-  if (gui->FlagB->value()) {
-    cerr << "Flag button changed to on" << endl;
-  }
-  else {
-    cerr << "Flag button changed to off" << endl;
-  }
-
 }
 
 void Scene::changeBrightness() {
@@ -172,7 +182,6 @@ void Scene::saveImage() {
     TIFFSetField(tif,TIFFTAG_BITSPERSAMPLE,bitsPerSample);
     TIFFSetField(tif,TIFFTAG_PLANARCONFIG,PLANARCONFIG_CONTIG);
     TIFFSetField(tif,TIFFTAG_PHOTOMETRIC,PHOTOMETRIC_RGB);
-
     //TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP, TIFFDefaultStripSize(tif, width * samplePerPixel));
 
     TIFFClose(tif);

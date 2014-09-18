@@ -201,6 +201,26 @@ void FrameBuffer::Convolve33(M33 kernel, FrameBuffer *&fb1) {
 
 }
 
+void FrameBuffer::Draw3DPoint(V3 pt, PPC *ppc, int psize, V3 color) {
+
+    V3 ppt;
+    if (!ppc->Project(pt, ppt))
+        return;
+    DrawPoint((int)ppt[0], (int)ppt[1], psize, color.GetColor());
+}
+
+
+void FrameBuffer::Draw3DSegment(V3 p0, V3 p1, PPC *ppc, unsigned int color) {
+
+    V3 pp0, pp1;
+    if (!ppc->Project(p0, pp0))
+        return;
+    if (!ppc->Project(p1, pp1))
+        return;
+    DrawSegment(pp0[0], pp0[1], pp1[0], pp1[1], color);  
+
+}
+
 /*
 void FrameBuffer::AdjustBrightness(float b) { // 0 <= b <= 2
 

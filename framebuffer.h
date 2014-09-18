@@ -28,5 +28,7 @@ public:
   void AdjustBrightness(float nb);
   void DetectEdges();
   void Convolve33(M33 kernel, FrameBuffer *& fb1);
+  void Draw3DPoint(V3 pt, PPC *ppc, int psize, V3 color);
+  void Draw3DSegment(V3 p0, V3 p1, PPC *ppc, unsigned int color);
 };
 

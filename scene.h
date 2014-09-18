@@ -10,7 +10,6 @@ public:
   Scene();
   void DBG();
   void Render();
-  void FlagB();
   void loadImage();
   void saveImage();
   void changeBrightness();

@@ -191,3 +191,32 @@ unsigned V3::getColor() {
 
 }
 
+AABB::AABB(V3 firstPoint) {
+
+    corners[0] = corners[1] = firstPoint;
+
+}
+
+void AABB::AddPoint(V3 pt) {
+
+    if (corners[0][0] > pt[0]) {
+        corners[0][0] = pt[0];
+    }
+    if (corners[0][1] > pt[1]) {
+        corners[0][1] = pt[1];
+    }
+    if (corners[0][2] > pt[2]) {
+        corners[0][2] = pt[2];
+    }
+
+    if (corners[1][0] < pt[0]) {
+        corners[1][0] = pt[0];
+    }
+    if (corners[1][1] < pt[1]) {
+        corners[1][1] = pt[1];
+    }
+    if (corners[1][2] < pt[2]) {
+        corners[1][2] = pt[2];
+    }
+}
+
