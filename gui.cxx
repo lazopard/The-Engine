@@ -9,13 +9,6 @@ void GUI::cb_DBG(Fl_Button* o, void* v) {
   ((GUI*)(o->parent()->user_data()))->cb_DBG_i(o,v);
 }
 
-void GUI::cb_FlagB_i(Fl_Check_Button*, void*) {
-  FlagB_cb();
-}
-void GUI::cb_FlagB(Fl_Check_Button* o, void* v) {
-  ((GUI*)(o->parent()->user_data()))->cb_FlagB_i(o,v);
-}
-
 void GUI::cb_BrightnessSlider_i(Fl_Value_Slider*, void*) {
   brightness_cb();
 }
@@ -52,12 +45,7 @@ GUI::GUI() {
       o->selection_color(FL_DARK_RED);
       o->callback((Fl_Callback*)cb_DBG);
     } // Fl_Button* o
-    { FlagB = new Fl_Check_Button(200, 100, 40, 25, "Flag");
-      FlagB->down_box(FL_DOWN_BOX);
-      FlagB->value(1);
-      FlagB->callback((Fl_Callback*)cb_FlagB);
-    } // Fl_Check_Button* FlagB
-    { BrightnessSlider = new Fl_Value_Slider(20, 5, 40, 200, "Brighness %");
+    { BrightnessSlider = new Fl_Value_Slider(25, 15, 35, 170, "Brighness %");
       BrightnessSlider->maximum(100);
       BrightnessSlider->step(0.1);
       BrightnessSlider->value(50);
@@ -88,10 +76,6 @@ void GUI::show() {
 
 void GUI::DBG_cb() {
   scene->DBG();
-}
-
-void GUI::FlagB_cb() {
-  scene->FlagB();
 }
 
 void GUI::load_cb() {

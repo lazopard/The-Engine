@@ -5,7 +5,6 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Button.H>
-#include <FL/Fl_Check_Button.H>
 #include <FL/Fl_Value_Slider.H>
 
 class GUI {
@@ -15,11 +14,6 @@ public:
 private:
   inline void cb_DBG_i(Fl_Button*, void*);
   static void cb_DBG(Fl_Button*, void*);
-public:
-  Fl_Check_Button *FlagB;
-private:
-  inline void cb_FlagB_i(Fl_Check_Button*, void*);
-  static void cb_FlagB(Fl_Check_Button*, void*);
 public:
   Fl_Value_Slider *BrightnessSlider;
 private:
@@ -34,7 +28,6 @@ private:
 public:
   void show();
   void DBG_cb();
-  void FlagB_cb();
   void load_cb();
   void save_cb();
   void brightness_cb();

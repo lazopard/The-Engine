@@ -6,6 +6,7 @@
 #include <Fl/Fl_File_Chooser.H>
 #include <OpenGL/glu.h>
 #include "M33.h"
+#include "ppc.h"
 
 class FrameBuffer : public Fl_Gl_Window {
 public:

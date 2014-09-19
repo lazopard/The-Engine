@@ -146,8 +146,10 @@ V3 V3::rotatePoint(V3 o, V3 a, float theta) {
     point = trans_matrix*(point - o);
 
     // Rotate about a by theta degrees
-    M33 r_m(a.normalize(), theta);
+    /*M33 r_m(a.normalize(), theta);
     r_m = M33(1) + (r_m * (sin(theta))) + (r_m * r_m * (2*sin(theta/2) * sin(theta/2)));
+    */
+    M33 r_m(closer_to, theta);
     point = r_m * point;
 
     //Transform back to original coord system
@@ -168,9 +170,9 @@ void V3::setFromColor(unsigned int color) {
 unsigned V3::getColor() {
 
   V3 &v = *this;
-  unsigned int red = (int) (v[0]*255.0f+0.5f);
-  unsigned int green = (int) (v[0]*255.0f+0.5f);
-  unsigned int blue = (int) (v[0]*255.0f+0.5f);
+  int red = (int) (v[0]*255.0f+0.5f);
+  int green = (int) (v[0]*255.0f+0.5f);
+  int blue = (int) (v[0]*255.0f+0.5f);
 
   if (red < 0)
     red = 0;

@@ -30,14 +30,17 @@ Scene::Scene() {
     tmeshesN = 2;
     tmeshes = new TMesh*[tmeshesN];
 
-    V3 center(7.0f, -10.0f, -65.0f);
+    V3 center(7.0f, -30.0f, -65.0f);
     V3 dims(20.0f, 10.0f, 45.0f);
     unsigned int color = 0xFF00FF00;
     tmeshes[0] = new TMesh(center, dims, color);
     tmeshes[0]->enabled = false;
 
     tmeshes[1] = new TMesh();
-    tmeshes[1]->LoadBin("geometry/teapot1k.bin");
+    char *lb = (char *) malloc(strlen("geometry/teapot1k.bin"));
+    strcpy(lb, "geometry/teapot1k.bin");
+    tmeshes[1]->LoadBin(lb);
+    free(lb);
     V3 newCenter = V3(0.0f, 0.0f, -150.0f);
     tmeshes[1]->Position(newCenter);
 
@@ -56,33 +59,6 @@ void Scene::Render() {
 }
 
 void Scene::DBG() {
-
-    float r = 10;
-    int i,j;
-    for(j = 0; j < 100; j+=2*r) {
-        fb->FillCircle(fb->w/6, fb->h/6 + j, r, 0x00000000);
-    }
-    for(i = 0; i < 50; i+=2*r) {
-        fb->FillCircle(fb->w/6 + i, fb->h/6 + j, r, 0x00000000);
-    }
-
-    i+=4*r;
-    for(j = 0; j < 100; j+=2*r) {
-        fb->FillCircle(fb->w/6 + i, fb->h/6 + j, r, 0x00000000);
-    }
-
-    int s = i + 50;
-    for(i; i <  s; i+=2*r) {
-        fb->FillCircle(fb->w/6 + i, fb->h/6, r, 0x00000000);
-        fb->FillCircle(fb->w/6 + i, fb->h/6 + j, r, 0x00000000);
-        fb->FillCircle(fb->w/6 + i, fb->h/6 + j/2, r, 0x00000000);
-    }
-
-    fb->DrawCircleWithThickness(fb->w/6 + s + 6*r, fb->h/6 + j/2, 5*r, r, 0x00000000);
-
-    Render();
-
-    return;
 }
 
 void Scene::changeBrightness() {
@@ -144,7 +120,6 @@ void Scene::loadImage() {
         _TIFFfree(raster);
     }
     TIFFClose(tif);
-
 }
 
 void Scene::saveImage() {
@@ -166,24 +141,33 @@ void Scene::saveImage() {
         exit(1);
     }
 
-    uint32 width, height;
-    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
-    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
+    //Get tags
     uint16 out[1];
     out[0] = EXTRASAMPLE_ASSOCALPHA;
     unsigned int samplePerPixel = 4;
     unsigned int bitsPerSample = 8;
 
-    TIFFSetField(tif,TIFFTAG_IMAGEWIDTH,width);
-    TIFFSetField(tif,TIFFTAG_IMAGELENGTH,height);
+    //Set tags
+    TIFFSetField(tif,TIFFTAG_IMAGEWIDTH, fb->w);
+    TIFFSetField(tif,TIFFTAG_IMAGELENGTH, fb->h);
     TIFFSetField(tif,TIFFTAG_ORIENTATION,ORIENTATION_TOPLEFT);
     TIFFSetField(tif,TIFFTAG_SAMPLESPERPIXEL,samplePerPixel);
     TIFFSetField(tif,TIFFTAG_EXTRASAMPLES,EXTRASAMPLE_ASSOCALPHA, &out);
     TIFFSetField(tif,TIFFTAG_BITSPERSAMPLE,bitsPerSample);
     TIFFSetField(tif,TIFFTAG_PLANARCONFIG,PLANARCONFIG_CONTIG);
     TIFFSetField(tif,TIFFTAG_PHOTOMETRIC,PHOTOMETRIC_RGB);
-    //TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP, TIFFDefaultStripSize(tif, width * samplePerPixel));
+    TIFFSetField(tif,TIFFTAG_ROWSPERSTRIP, TIFFDefaultStripSize(tif, fb->w*samplePerPixel));
 
+    unsigned int *buf = (unsigned int *) _TIFFmalloc(fb->w*4);
+
+    for (int row = 0; row < fb->h; row++) {
+        memcpy(buf, &(fb->pix[(fb->h - row - 1)*fb->w]), fb->w*4);
+        if (TIFFWriteScanline(tif, buf, row, 0) < 0)
+            break;
+    }
+
+    if (buf)
+        _TIFFfree(buf);
     TIFFClose(tif);
 }
 

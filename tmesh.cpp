@@ -3,6 +3,17 @@
 #include <fstream>
 #include <iostream>
 
+TMesh::TMesh() {
+    verts = 0;
+    vertsN = 0;
+    tris = 0;
+    trisN = 0;
+    normals = 0;
+    cols = 0;
+    aabb = 0;
+    enabled = false;
+}
+
 TMesh::TMesh(V3 center, V3 dims, unsigned int color) {
 
     enabled = true;
@@ -23,7 +34,7 @@ TMesh::TMesh(V3 center, V3 dims, unsigned int color) {
     verts[vi++] = center + V3(+dims[0]/2.0f, +dims[1]/2.0f, -dims[2]/2.0f);
 
     for (int vi = 0; vi < vertsN; vi++) {
-        cols[vi].SetFromColor(color);
+        cols[vi].setFromColor(color);
     }
 
     trisN = 12;
@@ -220,9 +231,9 @@ void TMesh::Position(V3 newCenter) {
 
 void TMesh::ScaleToNewDiagonal(float newDiagonal) {
 
-    float oldDiagonal = (aabb->corners[1] - aabb->corners[0]).Length();
+    float oldDiagonal = (aabb->corners[1] - aabb->corners[0]).length();
     float sf = newDiagonal / oldDiagonal;
-    float Length();
+    //float Length();
     V3 oldCenter = GetCenter();
     Position(V3(0.0f, 0.0f, 0.0f));
     Scale(sf);
@@ -240,3 +251,4 @@ void TMesh::Scale(float scf) {
     SetAABB();
 
 }
+

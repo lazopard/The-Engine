@@ -12,9 +12,7 @@ class TMesh {
         unsigned int *tris;
         int trisN;
         AABB *aabb;
-
-        TMesh() : verts(0), vertsN(0), tris(0), trisN(0), 
-        normals(0), cols(0), aabb(0), enabled(false) {};
+        TMesh();
         TMesh(V3 center, V3 dims, unsigned int color);
         void LoadBin(char *fname);
         void RenderPoints(PPC *ppc, FrameBuffer *fb, int psize);

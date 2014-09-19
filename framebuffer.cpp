@@ -206,7 +206,7 @@ void FrameBuffer::Draw3DPoint(V3 pt, PPC *ppc, int psize, V3 color) {
     V3 ppt;
     if (!ppc->Project(pt, ppt))
         return;
-    DrawPoint((int)ppt[0], (int)ppt[1], psize, color.GetColor());
+    DrawPoint((int)ppt[0], (int)ppt[1], psize, color.getColor());
 }
 
 

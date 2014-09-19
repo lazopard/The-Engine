@@ -13,7 +13,7 @@
 CC = g++
 
 # Compiling flags to be used
-CFLAGS = -c -Wall -g
+CFLAGS = -c -Wall -pedantic
 
 # Directory which contains FLTK
 FLTKDIR = /usr/local
@@ -24,7 +24,7 @@ APP_NAME = App
 ########################################################
 # Source files (with extension)
 #
-SOURCES = V3.cpp M33.cpp scene.cpp framebuffer.cpp gui.cxx
+SOURCES = V3.cpp M33.cpp scene.cpp framebuffer.cpp tmesh.cpp ppc.cpp  gui.cxx
 
 ########################################################
 # Included directories
