@@ -109,52 +109,69 @@ istream& operator>>(std::istream& in, V3& v) {
   return in;
 }
 
-V3 V3::rotate(V3 a, float theta) {
-    V3 v = (*this);
-    M33 r_m(a.normalize(), theta);
-    r_m = M33(1) + (r_m * (sin(theta))) + (r_m * r_m * (2*sin(theta/2) * sin(theta/2)));
-    v = r_m * v;
-    return v;
-}
 
-V3 V3::rotatePoint(V3 o, V3 a, float theta) {
+V3 V3::rotatePoint(V3 aO, V3 aD,
+        float thetad) {
 
-    V3 point = (*this);
-    V3 x = V3(1,0,0);
-    V3 y = V3(0,1,0);
-    V3 z = V3(0,0,1);
+    V3 xaxis(1.0f, 0.0f, 0.0f);
+    V3 yaxis(0.0f, 1.0f, 0.0f);
 
-    // Create new coordinate system
-    V3 new_coord[3];
-    new_coord[0] = o + a.normalize(); //a as first axis
-
-    //x/y cross a as second axis b
-    unsigned closer_to;
-    if (abs(a*x) < abs(a*y)) {
-        new_coord[1] = (x % a).normalize();
-        closer_to = 0; // x
+    float adx = fabsf(xaxis*aD);
+    float ady = fabsf(yaxis*aD);
+    V3 aux;
+    if (adx < ady) {
+        aux = xaxis;
     }
     else {
-        new_coord[1] = (y % a).normalize();
-        closer_to = 1; // y
+        aux = yaxis;
     }
-    // a cross b as third axis
-    new_coord[2] = (a % new_coord[1]).normalize();
 
-    // Transform point to new coord system
-    M33 trans_matrix = M33(new_coord[0], new_coord[1], new_coord[2]);
-    point = trans_matrix*(point - o);
+    M33 lm;
+    lm[0] = (aux%aD).normalize();
+    lm[1] = aD.normalize();
+    lm[2] = (lm[0] % lm[1]).normalize();
 
-    // Rotate about a by theta degrees
-    /*M33 r_m(a.normalize(), theta);
-    r_m = M33(1) + (r_m * (sin(theta))) + (r_m * r_m * (2*sin(theta/2) * sin(theta/2)));
-    */
-    M33 r_m(closer_to, theta);
-    point = r_m * point;
+    M33 ilm = lm.inverse();
 
-    //Transform back to original coord system
-    point = (trans_matrix.inverse()*point) + o;
-    return point;
+    M33 rotY = M33(V3(0,1,0), thetad);    
+    V3 pt(*this);
+    V3 lpt = lm*(pt-aO);
+    V3 rlpt = rotY*lpt;
+    V3 ret = aO + ilm*rlpt;
+    return ret;
+
+}
+
+V3 V3::rotate(V3 aD, float thetad) {
+
+    V3 xaxis(1.0f, 0.0f, 0.0f);
+    V3 yaxis(0.0f, 1.0f, 0.0f);
+
+    float adx = fabsf(xaxis*aD);
+    float ady = fabsf(yaxis*aD);
+    V3 aux;
+    if (adx < ady) {
+        aux = xaxis;
+    }
+    else {
+        aux = yaxis;
+    }
+
+    M33 lm;
+    lm[0] = (aux%aD).normalize();
+    lm[1] = aD.normalize();
+    lm[2] = (lm[0] % lm[1]).normalize();
+
+    M33 ilm = lm.inverse();
+
+    M33 rotY = M33(V3(0,1,0), thetad);
+
+    V3 pt(*this);
+    V3 lpt = lm*pt;
+    V3 rlpt = rotY*lpt;
+    V3 ret = ilm*rlpt;
+    return ret;
+
 }
 
 void V3::setFromColor(unsigned int color) {
@@ -171,8 +188,8 @@ unsigned V3::getColor() {
 
   V3 &v = *this;
   int red = (int) (v[0]*255.0f+0.5f);
-  int green = (int) (v[0]*255.0f+0.5f);
-  int blue = (int) (v[0]*255.0f+0.5f);
+  int green = (int) (v[1]*255.0f+0.5f);
+  int blue = (int) (v[2]*255.0f+0.5f);
 
   if (red < 0)
     red = 0;

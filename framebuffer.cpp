@@ -5,7 +5,8 @@
 #include <cmath>
 #include <tiffio.h>
 
-unsigned int *opix = NULL;
+const float FrameBuffer::DEFAULT_B = 50;
+const float FrameBuffer::DEFAULT_C = 1;
 
 FrameBuffer::FrameBuffer(int u0, int v0, 
   int _w, int _h) : Fl_Gl_Window(u0, v0, _w, _h, 0) {
@@ -13,7 +14,8 @@ FrameBuffer::FrameBuffer(int u0, int v0,
   w = _w;
   h = _h;
   pix = new unsigned int[w*h];
-  //opix = new unsigned int[w*h];
+  brightness = DEFAULT_B;
+  contrast = DEFAULT_C;
 }
 
 FrameBuffer::FrameBuffer(unsigned int *raster, int u0, int v0, unsigned int _w, unsigned int _h) : Fl_Gl_Window(u0, v0, _w, _h, 0) {
@@ -21,47 +23,36 @@ FrameBuffer::FrameBuffer(unsigned int *raster, int u0, int v0, unsigned int _w, 
     h = _h;
     pix = new unsigned int[w*h];
     _TIFFmemcpy(pix, raster, (w*h) * sizeof(uint32));
-   // _TIFFmemcpy(opix, raster, (w*h) * sizeof(uint32));
+    brightness = DEFAULT_B;
+    contrast = DEFAULT_C;
 }
 
 void FrameBuffer::draw() {
-
   glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, pix);
-
 }
 
 void FrameBuffer::Set(unsigned int bgr) {
-
   for (int i = 0; i < w*h; i++) {
     pix[i] = bgr;
   }
-
 }
 
 void FrameBuffer::Set(int u, int v, unsigned int color) {
-
   pix[(h-1-v)*w+u] = color;
-
 }
 
 unsigned int FrameBuffer::Get(int u, int v) {
-
   return pix[(h-1-v)*w+u];
-
 }
 
 void FrameBuffer::SetSafe(int u, int v, unsigned int color) {
-
   if (u < 0 || u > w-1 || v < 0 || v > h-1)
     return;
-
   Set(u, v, color);
-
 }
 
 void FrameBuffer::SetChecker(int csize, unsigned int color0, 
   unsigned int color1) {
-
 
   for (int v = 0; v < h; v++) {
     int cv = v / csize;
@@ -73,7 +64,6 @@ void FrameBuffer::SetChecker(int csize, unsigned int color0,
         Set(u, v, color0);
     }
   }
-
 }
 
 void FrameBuffer::DrawPoint(int u, int v, int psize, unsigned int color) {
@@ -83,11 +73,10 @@ void FrameBuffer::DrawPoint(int u, int v, int psize, unsigned int color) {
       SetSafe(j, i, color);
     }
   }
-
 }
 
 void FrameBuffer::DrawSegment(float u0f, float v0f, float u1f, float v1f, 
-  unsigned int color) {
+                              unsigned int color) {
 
     float du = abs(u1f-u0f);
     float dv = abs(v1f-v0f);
@@ -108,7 +97,6 @@ void FrameBuffer::DrawSegment(float u0f, float v0f, float u1f, float v1f,
       SetSafe(u, v, color);
       currentPoint = currentPoint + segmentStep;
     }
-
 }
 
 //8-way symmetry circle
@@ -198,7 +186,6 @@ void FrameBuffer::Convolve33(M33 kernel, FrameBuffer *&fb1) {
       fb1->Set(u, v, newc);
     }
   }
-
 }
 
 void FrameBuffer::Draw3DPoint(V3 pt, PPC *ppc, int psize, V3 color) {
@@ -209,7 +196,6 @@ void FrameBuffer::Draw3DPoint(V3 pt, PPC *ppc, int psize, V3 color) {
     DrawPoint((int)ppt[0], (int)ppt[1], psize, color.getColor());
 }
 
-
 void FrameBuffer::Draw3DSegment(V3 p0, V3 p1, PPC *ppc, unsigned int color) {
 
     V3 pp0, pp1;
@@ -218,16 +204,13 @@ void FrameBuffer::Draw3DSegment(V3 p0, V3 p1, PPC *ppc, unsigned int color) {
     if (!ppc->Project(p1, pp1))
         return;
     DrawSegment(pp0[0], pp0[1], pp1[0], pp1[1], color);  
-
 }
 
-/*
-void FrameBuffer::AdjustBrightness(float b) { // 0 <= b <= 2
-
-    for(int i = 0; i < w*h; i++) {
-        pix[i] = opix[i] + (opix[i]*b);
-    }
-    show();
+void FrameBuffer::AdjustBrightness(float b) { // 0 <= b <= 100
+    brightness = b;
 }
-*/
+
+void FrameBuffer::AdjustContrast(float c) {
+    contrast = c;
+}
 

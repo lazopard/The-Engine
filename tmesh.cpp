@@ -183,8 +183,8 @@ void TMesh::LoadBin(char *fname) {
 
     ifs.close();
 
-    cerr << "INFO: loaded " << vertsN << " verts, " << trisN << " tris from " << endl << "      " << fname << endl;
-    cerr << "      xyz " << ((cols) ? "rgb " : "") << ((normals) ? "nxnynz " : "") << ((tcs) ? "tcstct " : "") << endl;
+    //cerr << "INFO: loaded " << vertsN << " verts, " << trisN << " tris from " << endl << "      " << fname << endl;
+    //cerr << "      xyz " << ((cols) ? "rgb " : "") << ((normals) ? "nxnynz " : "") << ((tcs) ? "tcstct " : "") << endl;
 
     SetAABB();
 
@@ -203,7 +203,7 @@ void TMesh::SetAABB() {
     for (int vi = 0; vi < vertsN; vi++)
         aabb->AddPoint(verts[vi]);
 
-    cerr << "TMesh AABB: " << aabb->corners[0] << endl << aabb->corners[1] << endl;
+    //cerr << "TMesh AABB: " << aabb->corners[0] << endl << aabb->corners[1] << endl;
 
 }
 

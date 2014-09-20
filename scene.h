@@ -18,7 +18,11 @@ public:
   void loadImage();
   void saveImage();
   void changeBrightness();
+  void changeContrast();
   void detectEdges();
+  void tiltPPC();
+  void panPPC();
+  void rollPPC();
 };
 
 extern Scene *scene;

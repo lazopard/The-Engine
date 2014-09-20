@@ -91,8 +91,20 @@ void PPC::Pan(float theta) {
 }
 
 void PPC::Tilt(float theta) {
+    V3 a1 = a.rotatePoint(C, C + a, theta);
+    V3 b1 = b.rotatePoint(C, C + a, theta);
+    V3 c1 = c.rotatePoint(C, C + a, theta);
+    a = a1;
+    b = b1;
+    c = c1;
 }
 
 void PPC::Roll(float theta) {
+    V3 a1 = a.rotatePoint(C, C + (a%b), theta);
+    V3 b1 = b.rotatePoint(C, C + (a%b), theta);
+    V3 c1 = c.rotatePoint(C, C + (a%b), theta);
+    a = a1;
+    b = b1;
+    c = c1;
 }
 

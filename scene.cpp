@@ -63,8 +63,14 @@ void Scene::DBG() {
 
 void Scene::changeBrightness() {
     float brightness = gui->BrightnessSlider->value();
-    brightness /= 100.0f;
-    //fb->AdjustBrightness(brightness);
+    fb->AdjustBrightness(brightness);
+    Render();
+}
+
+void Scene::changeContrast() {
+    float contrast = gui->ContrastSlider->value();
+    fb->AdjustContrast(contrast);
+    Render();
 }
 
 void Scene::detectEdges() {
@@ -78,6 +84,24 @@ void Scene::detectEdges() {
 
   fb->show();
   return;
+}
+
+void Scene::tiltPPC() {
+    float tiltTheta = 10;
+    ppc->Tilt(tiltTheta);
+    Render();
+}
+
+void Scene::panPPC() {
+    float panTheta = 10;
+    ppc->Pan(panTheta);
+    Render();
+}
+
+void Scene::rollPPC() {
+    float rollTheta = 10;
+    ppc->Roll(rollTheta);
+    Render();
 }
 
 void Scene::loadImage() {

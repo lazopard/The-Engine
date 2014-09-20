@@ -9,81 +9,95 @@ class GUI {open
   Function {GUI()} {open
   } {
     Fl_Window uiw {
-      label GUI open
-      xywh {536 44 331 189} type Double visible
+      label GUI open selected
+      xywh {536 44 461 199} type Double visible
     } {
       Fl_Button {} {
         label DBG
         callback {DBG_cb()}
-        xywh {230 0 100 25} selection_color 72
+        xywh {360 0 100 25} selection_color 72
       }
       Fl_Value_Slider BrightnessSlider {
         label {Brighness %}
         callback {brightness_cb()}
-        xywh {25 0 35 170} maximum 100 step 0.1 value 50 textsize 14
+        xywh {30 0 35 170} maximum 100 step 0.1 value 50 textsize 14
       }
       Fl_Button {} {
         label {Edge Detection}
         callback {detect_edges_cb()}
-        xywh {85 0 95 25}
+        xywh {215 0 95 25}
       }
       Fl_Button {} {
         label {Load image}
         callback {load_cb()}
-        xywh {230 25 100 30}
+        xywh {360 25 100 30}
       }
       Fl_Button {} {
         label {Save file}
         callback {save_cb()}
-        xywh {230 85 100 30}
+        xywh {360 85 100 30}
       }
       Fl_Button {} {
         label L
         callback {left_cb()}
-        xywh {70 50 20 20}
+        xywh {185 50 20 40}
       }
       Fl_Button {} {
         label R
         callback {right_cb()}
-        xywh {110 50 20 20}
+        xywh {230 50 20 40}
       }
       Fl_Button {} {
         label U
         callback {up_cb()}
-        xywh {90 30 20 20}
+        xywh {205 30 25 20}
       }
       Fl_Button {} {
         label D
         callback {down_cb()}
-        xywh {90 70 20 20}
+        xywh {205 90 25 25}
       }
       Fl_Button {} {
         label Tilt
         callback {tilt_cb()}
-        xywh {140 30 63 20}
+        xywh {270 30 63 20}
       }
       Fl_Button {} {
         label Pan
         callback {pan_cb()}
-        xywh {140 50 63 20}
+        xywh {270 50 63 20}
       }
       Fl_Button {} {
         label Roll
         callback {roll_cb()}
-        xywh {140 70 63 20}
+        xywh {270 70 63 20}
       }
       Fl_Button {} {
         label {Load Geometry}
-        callback {load_geometry()}
-        xywh {230 55 100 30}
+        callback {load_geometry_cb()}
+        xywh {360 55 100 30}
+      }
+      Fl_Value_Slider ContrastSlider {
+        label Contrast
+        callback {contrast_cb()}
+        xywh {105 0 35 170} minimum 1 maximum 3 value 1 textsize 14
+      }
+      Fl_Button {} {
+        label F
+        callback {f_cb()}
+        xywh {205 50 25 20}
+      }
+      Fl_Button {} {
+        label B
+        callback {b_cb()}
+        xywh {205 70 25 20}
       }
     }
   }
   Function {} {} {
     code {scene = new Scene;} {}
   }
-  Function {show()} {selected
-  } {
+  Function {show()} {} {
     code {uiw->show();} {}
   }
   Function {DBG_cb()} {} {
@@ -101,12 +115,33 @@ class GUI {open
   Function {detect_edges_cb()} {} {
     code {scene->detectEdges();} {}
   }
-  Function {load_geometry_cb()} {} {}
-  Function {left_cb()} {} {}
-  Function {right_cb()} {} {}
-  Function {left_cb()} {} {}
-  Function {down_cb()} {} {}
-  Function {tilt_cb()} {} {}
-  Function {pan_cb()} {} {}
-  Function {roll_cb()} {} {}
+  Function {load_geometry_cb()} {} {
+    code {printf("Hello, World!\\n");} {}
+  }
+  Function {left_cb()} {} {
+    code {printf("Hello, World!\\n");} {}
+  }
+  Function {right_cb()} {} {
+    code {printf("Hello, World!\\n");} {}
+  }
+  Function {down_cb()} {} {
+    code {printf("Hello, World!\\n");} {}
+  }
+  Function {tilt_cb()} {} {
+    code {scene->tiltPPC();} {}
+  }
+  Function {pan_cb()} {} {
+    code {scene->panPPC();} {}
+  }
+  Function {roll_cb()} {} {
+    code {scene->rollPPC();} {}
+  }
+  Function {up_cb()} {} {
+    code {printf("Hello, World!\\n");} {}
+  }
+  Function {contrast_cb()} {} {
+    code {scene->changeContrast();} {}
+  }
+  Function {f_cb()} {} {}
+  Function {b_cb()} {} {}
 } 

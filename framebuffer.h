@@ -10,8 +10,11 @@
 
 class FrameBuffer : public Fl_Gl_Window {
 public:
-  unsigned int *pix;
+  unsigned int *pix, *opix;
   int w, h;
+  static const float DEFAULT_B, DEFAULT_C;
+  float brightness; // 0<= brightness <= 100
+  float contrast; //1 <= contrast <= 3
   FrameBuffer(int u0, int v0, int _w, int _h);
   FrameBuffer(unsigned int *raster, int u0, int v0, unsigned int _w, unsigned int _h);
   void draw();
@@ -26,7 +29,8 @@ public:
   void DrawCircle(float cx, float cy, float r, unsigned int color);
   void DrawCircleWithThickness(float cx, float cy, float r, float thickness, unsigned int color);
   void FillCircle(float cx, float cy, float r, unsigned int color);
-  void AdjustBrightness(float nb);
+  void AdjustBrightness(float b);
+  void AdjustContrast(float c);
   void DetectEdges();
   void Convolve33(M33 kernel, FrameBuffer *& fb1);
   void Draw3DPoint(V3 pt, PPC *ppc, int psize, V3 color);
