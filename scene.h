@@ -20,9 +20,18 @@ public:
   void changeBrightness();
   void changeContrast();
   void detectEdges();
-  void tiltPPC();
-  void panPPC();
-  void rollPPC();
+  void translateRight();
+  void translateLeft();
+  void translateUp();
+  void translateDown();
+  void translateFront();
+  void translateBack();
+  void tiltUp();
+  void tiltDown();
+  void panLeft();
+  void panRight();
+  void rollLeft();
+  void rollRight();
 };
 
 extern Scene *scene;

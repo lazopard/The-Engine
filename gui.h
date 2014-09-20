@@ -33,12 +33,12 @@ private:
   static void cb_U(Fl_Button*, void*);
   inline void cb_D_i(Fl_Button*, void*);
   static void cb_D(Fl_Button*, void*);
-  inline void cb_Tilt_i(Fl_Button*, void*);
-  static void cb_Tilt(Fl_Button*, void*);
-  inline void cb_Pan_i(Fl_Button*, void*);
-  static void cb_Pan(Fl_Button*, void*);
-  inline void cb_Roll_i(Fl_Button*, void*);
-  static void cb_Roll(Fl_Button*, void*);
+  inline void cb_TiltU_i(Fl_Button*, void*);
+  static void cb_TiltU(Fl_Button*, void*);
+  inline void cb_PanL_i(Fl_Button*, void*);
+  static void cb_PanL(Fl_Button*, void*);
+  inline void cb_RollL_i(Fl_Button*, void*);
+  static void cb_RollL(Fl_Button*, void*);
   inline void cb_Load1_i(Fl_Button*, void*);
   static void cb_Load1(Fl_Button*, void*);
 public:
@@ -46,6 +46,16 @@ public:
 private:
   inline void cb_ContrastSlider_i(Fl_Value_Slider*, void*);
   static void cb_ContrastSlider(Fl_Value_Slider*, void*);
+  inline void cb_F_i(Fl_Button*, void*);
+  static void cb_F(Fl_Button*, void*);
+  inline void cb_B_i(Fl_Button*, void*);
+  static void cb_B(Fl_Button*, void*);
+  inline void cb_PanR_i(Fl_Button*, void*);
+  static void cb_PanR(Fl_Button*, void*);
+  inline void cb_RollR_i(Fl_Button*, void*);
+  static void cb_RollR(Fl_Button*, void*);
+  inline void cb_TiltD_i(Fl_Button*, void*);
+  static void cb_TiltD(Fl_Button*, void*);
 public:
   void show();
   void DBG_cb();
@@ -57,10 +67,15 @@ public:
   void left_cb();
   void right_cb();
   void down_cb();
-  void tilt_cb();
-  void pan_cb();
-  void roll_cb();
+  void tiltU_cb();
+  void panL_cb();
+  void rollL_cb();
   void up_cb();
   void contrast_cb();
+  void f_cb();
+  void b_cb();
+  void tiltD_cb();
+  void panR_cb();
+  void rollR_cb();
 };
 #endif

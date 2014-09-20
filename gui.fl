@@ -9,7 +9,7 @@ class GUI {open
   Function {GUI()} {open
   } {
     Fl_Window uiw {
-      label GUI open selected
+      label GUI open
       xywh {536 44 461 199} type Double visible
     } {
       Fl_Button {} {
@@ -58,19 +58,19 @@ class GUI {open
         xywh {205 90 25 25}
       }
       Fl_Button {} {
-        label Tilt
-        callback {tilt_cb()}
-        xywh {270 30 63 20}
+        label TiltU
+        callback {tiltU_cb()}
+        xywh {265 30 40 20}
       }
       Fl_Button {} {
-        label Pan
-        callback {pan_cb()}
-        xywh {270 50 63 20}
+        label PanL
+        callback {panL_cb()}
+        xywh {265 50 40 20}
       }
       Fl_Button {} {
-        label Roll
-        callback {roll_cb()}
-        xywh {270 70 63 20}
+        label RollL
+        callback {rollL_cb()}
+        xywh {265 70 40 20}
       }
       Fl_Button {} {
         label {Load Geometry}
@@ -91,6 +91,21 @@ class GUI {open
         label B
         callback {b_cb()}
         xywh {205 70 25 20}
+      }
+      Fl_Button {} {
+        label PanR
+        callback {panR_cb()}
+        xywh {305 50 45 20}
+      }
+      Fl_Button {} {
+        label RollR
+        callback {rollR_cb()}
+        xywh {305 70 45 20}
+      }
+      Fl_Button {} {
+        label TiltD
+        callback {tiltD_cb()} selected
+        xywh {305 30 45 20}
       }
     }
   }
@@ -119,29 +134,42 @@ class GUI {open
     code {printf("Hello, World!\\n");} {}
   }
   Function {left_cb()} {} {
-    code {printf("Hello, World!\\n");} {}
+    code {scene->translateLeft();} {}
   }
   Function {right_cb()} {} {
-    code {printf("Hello, World!\\n");} {}
+    code {scene->translateRight();} {}
   }
   Function {down_cb()} {} {
-    code {printf("Hello, World!\\n");} {}
+    code {scene->translateDown();} {}
   }
-  Function {tilt_cb()} {} {
-    code {scene->tiltPPC();} {}
+  Function {tiltU_cb()} {} {
+    code {scene->tiltUp();} {}
   }
-  Function {pan_cb()} {} {
-    code {scene->panPPC();} {}
+  Function {panL_cb()} {} {
+    code {scene->panLeft();} {}
   }
-  Function {roll_cb()} {} {
-    code {scene->rollPPC();} {}
+  Function {rollL_cb()} {} {
+    code {scene->rollLeft();} {}
   }
   Function {up_cb()} {} {
-    code {printf("Hello, World!\\n");} {}
+    code {scene->translateUp();} {}
   }
   Function {contrast_cb()} {} {
     code {scene->changeContrast();} {}
   }
-  Function {f_cb()} {} {}
-  Function {b_cb()} {} {}
+  Function {f_cb()} {} {
+    code {scene->translateFront();} {}
+  }
+  Function {b_cb()} {} {
+    code {scene->translateBack();} {}
+  }
+  Function {tiltD_cb()} {} {
+    code {scene->tiltDown();} {}
+  }
+  Function {panR_cb()} {} {
+    code {scene->panRight();} {}
+  }
+  Function {rollR_cb()} {} {
+    code {scene->rollRight();} {}
+  }
 } 

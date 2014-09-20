@@ -65,25 +65,25 @@ void GUI::cb_D(Fl_Button* o, void* v) {
   ((GUI*)(o->parent()->user_data()))->cb_D_i(o,v);
 }
 
-void GUI::cb_Tilt_i(Fl_Button*, void*) {
-  tilt_cb();
+void GUI::cb_TiltU_i(Fl_Button*, void*) {
+  tiltU_cb();
 }
-void GUI::cb_Tilt(Fl_Button* o, void* v) {
-  ((GUI*)(o->parent()->user_data()))->cb_Tilt_i(o,v);
-}
-
-void GUI::cb_Pan_i(Fl_Button*, void*) {
-  pan_cb();
-}
-void GUI::cb_Pan(Fl_Button* o, void* v) {
-  ((GUI*)(o->parent()->user_data()))->cb_Pan_i(o,v);
+void GUI::cb_TiltU(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_TiltU_i(o,v);
 }
 
-void GUI::cb_Roll_i(Fl_Button*, void*) {
-  roll_cb();
+void GUI::cb_PanL_i(Fl_Button*, void*) {
+  panL_cb();
 }
-void GUI::cb_Roll(Fl_Button* o, void* v) {
-  ((GUI*)(o->parent()->user_data()))->cb_Roll_i(o,v);
+void GUI::cb_PanL(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_PanL_i(o,v);
+}
+
+void GUI::cb_RollL_i(Fl_Button*, void*) {
+  rollL_cb();
+}
+void GUI::cb_RollL(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_RollL_i(o,v);
 }
 
 void GUI::cb_Load1_i(Fl_Button*, void*) {
@@ -99,16 +99,51 @@ void GUI::cb_ContrastSlider_i(Fl_Value_Slider*, void*) {
 void GUI::cb_ContrastSlider(Fl_Value_Slider* o, void* v) {
   ((GUI*)(o->parent()->user_data()))->cb_ContrastSlider_i(o,v);
 }
+
+void GUI::cb_F_i(Fl_Button*, void*) {
+  f_cb();
+}
+void GUI::cb_F(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_F_i(o,v);
+}
+
+void GUI::cb_B_i(Fl_Button*, void*) {
+  b_cb();
+}
+void GUI::cb_B(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_B_i(o,v);
+}
+
+void GUI::cb_PanR_i(Fl_Button*, void*) {
+  panR_cb();
+}
+void GUI::cb_PanR(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_PanR_i(o,v);
+}
+
+void GUI::cb_RollR_i(Fl_Button*, void*) {
+  rollR_cb();
+}
+void GUI::cb_RollR(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_RollR_i(o,v);
+}
+
+void GUI::cb_TiltD_i(Fl_Button*, void*) {
+  tiltD_cb();
+}
+void GUI::cb_TiltD(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_TiltD_i(o,v);
+}
 #include "scene.h"
 
 GUI::GUI() {
-  { uiw = new Fl_Double_Window(461, 225, "GUI");
+  { uiw = new Fl_Double_Window(461, 199, "GUI");
     uiw->user_data((void*)(this));
     { Fl_Button* o = new Fl_Button(360, 0, 100, 25, "DBG");
       o->selection_color(FL_DARK_RED);
       o->callback((Fl_Callback*)cb_DBG);
     } // Fl_Button* o
-    { BrightnessSlider = new Fl_Value_Slider(25, 0, 35, 170, "Brighness %");
+    { BrightnessSlider = new Fl_Value_Slider(30, 0, 35, 170, "Brighness %");
       BrightnessSlider->maximum(100);
       BrightnessSlider->step(0.1);
       BrightnessSlider->value(50);
@@ -124,37 +159,52 @@ GUI::GUI() {
     { Fl_Button* o = new Fl_Button(360, 85, 100, 30, "Save file");
       o->callback((Fl_Callback*)cb_Save);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(200, 50, 20, 20, "L");
+    { Fl_Button* o = new Fl_Button(185, 50, 20, 40, "L");
       o->callback((Fl_Callback*)cb_L);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(240, 50, 20, 20, "R");
+    { Fl_Button* o = new Fl_Button(230, 50, 20, 40, "R");
       o->callback((Fl_Callback*)cb_R);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(220, 30, 20, 20, "U");
+    { Fl_Button* o = new Fl_Button(205, 30, 25, 20, "U");
       o->callback((Fl_Callback*)cb_U);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(220, 70, 20, 20, "D");
+    { Fl_Button* o = new Fl_Button(205, 90, 25, 25, "D");
       o->callback((Fl_Callback*)cb_D);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(270, 30, 63, 20, "Tilt");
-      o->callback((Fl_Callback*)cb_Tilt);
+    { Fl_Button* o = new Fl_Button(265, 30, 40, 20, "TiltU");
+      o->callback((Fl_Callback*)cb_TiltU);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(270, 50, 63, 20, "Pan");
-      o->callback((Fl_Callback*)cb_Pan);
+    { Fl_Button* o = new Fl_Button(265, 50, 40, 20, "PanL");
+      o->callback((Fl_Callback*)cb_PanL);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(270, 70, 63, 20, "Roll");
-      o->callback((Fl_Callback*)cb_Roll);
+    { Fl_Button* o = new Fl_Button(265, 70, 40, 20, "RollL");
+      o->callback((Fl_Callback*)cb_RollL);
     } // Fl_Button* o
     { Fl_Button* o = new Fl_Button(360, 55, 100, 30, "Load Geometry");
       o->callback((Fl_Callback*)cb_Load1);
     } // Fl_Button* o
-    { ContrastSlider = new Fl_Value_Slider(100, 0, 35, 170, "Contrast");
+    { ContrastSlider = new Fl_Value_Slider(105, 0, 35, 170, "Contrast");
       ContrastSlider->minimum(1);
       ContrastSlider->maximum(3);
       ContrastSlider->value(1);
       ContrastSlider->textsize(14);
       ContrastSlider->callback((Fl_Callback*)cb_ContrastSlider);
     } // Fl_Value_Slider* ContrastSlider
+    { Fl_Button* o = new Fl_Button(205, 50, 25, 20, "F");
+      o->callback((Fl_Callback*)cb_F);
+    } // Fl_Button* o
+    { Fl_Button* o = new Fl_Button(205, 70, 25, 20, "B");
+      o->callback((Fl_Callback*)cb_B);
+    } // Fl_Button* o
+    { Fl_Button* o = new Fl_Button(305, 50, 45, 20, "PanR");
+      o->callback((Fl_Callback*)cb_PanR);
+    } // Fl_Button* o
+    { Fl_Button* o = new Fl_Button(305, 70, 45, 20, "RollR");
+      o->callback((Fl_Callback*)cb_RollR);
+    } // Fl_Button* o
+    { Fl_Button* o = new Fl_Button(305, 30, 45, 20, "TiltD");
+      o->callback((Fl_Callback*)cb_TiltD);
+    } // Fl_Button* o
     uiw->end();
   } // Fl_Double_Window* uiw
 }
@@ -193,33 +243,53 @@ void GUI::load_geometry_cb() {
 }
 
 void GUI::left_cb() {
-  printf("Hello, World!\n");
+  scene->translateLeft();
 }
 
 void GUI::right_cb() {
-  printf("Hello, World!\n");
+  scene->translateRight();
 }
 
 void GUI::down_cb() {
-  printf("Hello, World!\n");
+  scene->translateDown();
 }
 
-void GUI::tilt_cb() {
-  scene->tiltPPC();
+void GUI::tiltU_cb() {
+  scene->tiltUp();
 }
 
-void GUI::pan_cb() {
-  scene->panPPC();
+void GUI::panL_cb() {
+  scene->panLeft();
 }
 
-void GUI::roll_cb() {
-  scene->rollPPC();
+void GUI::rollL_cb() {
+  scene->rollLeft();
 }
 
 void GUI::up_cb() {
-  printf("Hello, World!\n");
+  scene->translateUp();
 }
 
 void GUI::contrast_cb() {
   scene->changeContrast();
+}
+
+void GUI::f_cb() {
+  scene->translateFront();
+}
+
+void GUI::b_cb() {
+  scene->translateBack();
+}
+
+void GUI::tiltD_cb() {
+  scene->tiltDown();
+}
+
+void GUI::panR_cb() {
+  scene->panRight();
+}
+
+void GUI::rollR_cb() {
+  scene->rollRight();
 }

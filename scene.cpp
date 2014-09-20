@@ -86,20 +86,74 @@ void Scene::detectEdges() {
   return;
 }
 
-void Scene::tiltPPC() {
+void Scene::translateRight() {
+    float tStep = 10;
+    ppc->TranslateX(tStep);
+    Render();
+}
+
+void Scene::translateLeft() {
+    float tStep = -10;
+    ppc->TranslateX(tStep);
+    Render();
+}
+
+void Scene::translateUp() {
+    float tStep = 10;
+    ppc->TranslateY(tStep);
+    Render();
+}
+
+void Scene::translateDown() {
+    float tStep = -10;
+    ppc->TranslateY(tStep);
+    Render();
+}
+
+void Scene::translateFront() {
+    float tStep = 10;
+    ppc->TranslateZ(tStep);
+    Render();
+}
+
+void Scene::translateBack() {
+    float tStep = -10;
+    ppc->TranslateZ(tStep);
+    Render();
+}
+
+void Scene::tiltUp() {
     float tiltTheta = 10;
     ppc->Tilt(tiltTheta);
     Render();
 }
 
-void Scene::panPPC() {
+void Scene::tiltDown() {
+    float tiltTheta = -10;
+    ppc->Tilt(tiltTheta);
+    Render();
+}
+
+void Scene::panLeft() {
     float panTheta = 10;
     ppc->Pan(panTheta);
     Render();
 }
 
-void Scene::rollPPC() {
+void Scene::panRight() {
+    float panTheta = -10;
+    ppc->Pan(panTheta);
+    Render();
+}
+
+void Scene::rollLeft() {
     float rollTheta = 10;
+    ppc->Roll(rollTheta);
+    Render();
+}
+
+void Scene::rollRight() {
+    float rollTheta = -10;
     ppc->Roll(rollTheta);
     Render();
 }

@@ -4,7 +4,6 @@
 #include <cmath>
 
 PPC::PPC(float hfov, int _w, int _h) : w(_w), h(_h) {
-
     C = V3(0.0f, 0.0f, 0.0f);
     a = V3(1.0f, 0.0f, 0.0f);
     b = V3(0.0f, -1.0f, 0.0f);
@@ -14,7 +13,6 @@ PPC::PPC(float hfov, int _w, int _h) : w(_w), h(_h) {
 
 
 bool PPC::Project(V3 P, V3 &PP) {
-
     M33 cam;
     cam.setColumn(0, a);
     cam.setColumn(1, b);
@@ -29,11 +27,9 @@ bool PPC::Project(V3 P, V3 &PP) {
     PP[1] = q[1] / q[2];
     PP[2] = 1.0f / q[2];
     return true;
-
 }
 
 void PPC::PositionAndOrient(V3 newC, V3 lap, V3 vpv) {
-
 
     V3 newVD = (lap - newC).normalize();
 
@@ -50,23 +46,18 @@ void PPC::PositionAndOrient(V3 newC, V3 lap, V3 vpv) {
     b = newb;
     c = newc;
     C = newC;
-
 }
 
 V3 PPC::GetVD() {
-
     V3 ret;
     ret = (a % b).normalize();
     return ret;
-
 }
 
 float PPC::GetF() {
-
     float ret;
     ret = GetVD()*c;
     return ret;
-
 }
 
 void PPC::TranslateX(float step) {
