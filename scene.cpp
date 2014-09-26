@@ -19,6 +19,7 @@ Scene::Scene() {
     int sci = 2;
     int w = sci*320;
     int h = sci*240;
+    step = 10;
     fb = new FrameBuffer(u0, v0, w, h);
     fb->label("Framebuffer");
     fb->show();
@@ -27,24 +28,42 @@ Scene::Scene() {
     float hfov = 55.0f;
     ppc = new PPC(hfov, w, h);
 
-    tmeshesN = 2;
-    tmeshes = new TMesh*[tmeshesN];
-
-    V3 center(7.0f, -30.0f, -65.0f);
-    V3 dims(20.0f, 10.0f, 45.0f);
-    unsigned int color = 0xFF00FF00;
-    tmeshes[0] = new TMesh(center, dims, color);
-    tmeshes[0]->enabled = false;
-
-    tmeshes[1] = new TMesh();
-    char *lb = (char *) malloc(strlen("geometry/teapot1k.bin"));
-    strcpy(lb, "geometry/teapot1k.bin");
-    tmeshes[1]->LoadBin(lb);
-    free(lb);
-    V3 newCenter = V3(0.0f, 0.0f, -150.0f);
-    tmeshes[1]->Position(newCenter);
+    tmeshesN = 0;
+    tmeshes = 0;
 
     Render();
+}
+
+void Scene::LoadCamera() {
+    Fl_File_Chooser chooser(".",                        // directory
+                            "*",                        // filter
+                            Fl_File_Chooser::SINGLE,     // chooser type
+                            "Open...");        // title
+    chooser.show();
+     while(chooser.shown())
+    { Fl::wait(); }
+
+    // User hit cancel?
+    if ( chooser.value() == NULL )
+    { fprintf(stderr, "(User hit 'Cancel')\n"); return; }
+    //use load bin and add to tmesh array
+    ppc = new PPC(chooser.value());
+    Render();
+}
+
+void Scene::SaveCamera() {
+   Fl_File_Chooser chooser(".",
+                            "*",
+                            Fl_File_Chooser::CREATE,
+                            "Save File as...");
+    chooser.show();
+    while(chooser.shown())
+    { Fl::wait(); }
+
+    // User hit cancel
+    if ( chooser.value() == NULL )
+    { fprintf(stderr, "(User hit 'Cancel')\n"); return; }
+    ppc->Save(chooser.value());
 }
 
 void Scene::Render() {
@@ -58,7 +77,23 @@ void Scene::Render() {
     fb->redraw();
 }
 
+//play
 void Scene::DBG() {
+    /*
+    V3 C0 = ppc->C;
+    V3 C1(0.0f, 180.0f, -30.0f);
+    V3 lap = tmeshes[1]->GetCenter();
+    V3 vpv = V3(0.0f, 1.0f, 0.0f);
+    int stepsN = 100;
+    for (int si = 0; si < stepsN; si++) {
+      V3 newC = C0 + (C1-C0)*(float)si/(float)(stepsN-1);
+      ppc->PositionAndOrient(newC, lap, vpv);
+      Render();
+      Fl::check();
+    }
+    */
+
+    return;
 }
 
 void Scene::changeBrightness() {
@@ -87,74 +122,113 @@ void Scene::detectEdges() {
 }
 
 void Scene::translateRight() {
-    float tStep = 10;
-    ppc->TranslateX(tStep);
+    ppc->TranslateX(step);
     Render();
 }
 
 void Scene::translateLeft() {
-    float tStep = -10;
-    ppc->TranslateX(tStep);
+    ppc->TranslateX(-step);
     Render();
 }
 
 void Scene::translateUp() {
-    float tStep = 10;
-    ppc->TranslateY(tStep);
+    ppc->TranslateY(step);
     Render();
 }
 
 void Scene::translateDown() {
-    float tStep = -10;
-    ppc->TranslateY(tStep);
+    ppc->TranslateY(-step);
     Render();
 }
 
 void Scene::translateFront() {
-    float tStep = 10;
-    ppc->TranslateZ(tStep);
+    ppc->TranslateZ(step);
     Render();
 }
 
 void Scene::translateBack() {
-    float tStep = -10;
-    ppc->TranslateZ(tStep);
+    ppc->TranslateZ(-step);
+    Render();
+}
+
+void Scene::adjustStep() {
+    step = gui->StepSlider->value();
+}
+
+void Scene::ZoomIn() {
+    ppc->Zoom(step);
+    Render();
+}
+
+void Scene::ZoomOut() {
+    ppc->Zoom(1/step);
     Render();
 }
 
 void Scene::tiltUp() {
-    float tiltTheta = 10;
-    ppc->Tilt(tiltTheta);
+    ppc->Tilt(step);
     Render();
 }
 
 void Scene::tiltDown() {
-    float tiltTheta = -10;
-    ppc->Tilt(tiltTheta);
+    ppc->Tilt(-step);
     Render();
 }
 
 void Scene::panLeft() {
-    float panTheta = 10;
-    ppc->Pan(panTheta);
+    ppc->Pan(step);
     Render();
 }
 
 void Scene::panRight() {
-    float panTheta = -10;
-    ppc->Pan(panTheta);
+    ppc->Pan(-step);
     Render();
 }
 
 void Scene::rollLeft() {
-    float rollTheta = 10;
-    ppc->Roll(rollTheta);
+    ppc->Roll(step);
     Render();
 }
 
 void Scene::rollRight() {
-    float rollTheta = -10;
-    ppc->Roll(rollTheta);
+    ppc->Roll(-step);
+    Render();
+}
+
+void Scene::loadGeometry() {
+    Fl_File_Chooser chooser(".",                        // directory
+                            "*",                        // filter
+                            Fl_File_Chooser::SINGLE,     // chooser type
+                            "Open...");        // title
+    chooser.show();
+     while(chooser.shown())
+    { Fl::wait(); }
+
+    // User hit cancel?
+    if ( chooser.value() == NULL )
+    { fprintf(stderr, "(User hit 'Cancel')\n"); return; }
+
+    //use load bin and add to tmesh array
+    if (!tmeshes) {
+        tmeshes = new TMesh*[20];
+    }
+    tmeshes[tmeshesN] = new TMesh();
+    tmeshes[tmeshesN]->LoadBin(chooser.value());
+
+    V3 newCenter;
+    if (tmeshesN < 1) {
+        newCenter = ppc->C - V3(0,0,100);
+        tmeshes[tmeshesN]->Position(newCenter);
+        tmeshesN++;
+        Render();
+        return;
+    }
+
+    newCenter = tmeshes[tmeshesN]->GetCenter() + V3(100, 0, 0);
+    ZoomOut();
+    ZoomOut();
+    tmeshes[tmeshesN]->Position(newCenter);
+    tmeshesN++;
     Render();
 }
 

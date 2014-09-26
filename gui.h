@@ -12,8 +12,8 @@ public:
   GUI();
   Fl_Double_Window *uiw;
 private:
-  inline void cb_DBG_i(Fl_Button*, void*);
-  static void cb_DBG(Fl_Button*, void*);
+  inline void cb_Play_i(Fl_Button*, void*);
+  static void cb_Play(Fl_Button*, void*);
 public:
   Fl_Value_Slider *BrightnessSlider;
 private:
@@ -56,6 +56,19 @@ private:
   static void cb_RollR(Fl_Button*, void*);
   inline void cb_TiltD_i(Fl_Button*, void*);
   static void cb_TiltD(Fl_Button*, void*);
+  inline void cb_Load2_i(Fl_Button*, void*);
+  static void cb_Load2(Fl_Button*, void*);
+  inline void cb_Save1_i(Fl_Button*, void*);
+  static void cb_Save1(Fl_Button*, void*);
+  inline void cb_Z_i(Fl_Button*, void*);
+  static void cb_Z(Fl_Button*, void*);
+  inline void cb_Z1_i(Fl_Button*, void*);
+  static void cb_Z1(Fl_Button*, void*);
+public:
+  Fl_Value_Slider *StepSlider;
+private:
+  inline void cb_StepSlider_i(Fl_Value_Slider*, void*);
+  static void cb_StepSlider(Fl_Value_Slider*, void*);
 public:
   void show();
   void DBG_cb();
@@ -77,5 +90,10 @@ public:
   void tiltD_cb();
   void panR_cb();
   void rollR_cb();
+  void load_camera_cb();
+  void save_camera_cb();
+  void zoom_in_cb();
+  void zoom_out_cb();
+  void step_cb();
 };
 #endif

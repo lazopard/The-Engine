@@ -2,6 +2,8 @@
 #include "ppc.h"
 #include "m33.h"
 #include <cmath>
+#include <iostream>
+#include <fstream>
 
 PPC::PPC(float hfov, int _w, int _h) : w(_w), h(_h) {
     C = V3(0.0f, 0.0f, 0.0f);
@@ -11,6 +13,77 @@ PPC::PPC(float hfov, int _w, int _h) : w(_w), h(_h) {
     c = V3(-(float)w / 2.0f, (float)h / 2.0f, -(float)w / (2.0f *tanf(alpha)));
 }
 
+//load from file
+PPC::PPC(const char *filename) {
+    string as, bs, cs, Cs,
+           ws, hs, hfovs;
+    ifstream ppc_f(filename);
+    if (ppc_f.is_open()) {
+        getline(ppc_f, as);
+        getline(ppc_f, bs);
+        getline(ppc_f, cs);
+        getline(ppc_f, Cs);
+        getline(ppc_f, ws);
+        getline(ppc_f, hs);
+    }
+    ppc_f.close();
+    a = stof(as);
+    b = stof(bs);
+    c = stof(cs);
+    C = stof(Cs);
+    w = stof(ws);
+    h = stof(hs);
+    h = stof(hs);
+}
+
+void PPC::Save(const char *filename) {
+    ofstream ppc_f(filename);
+    if (ppc_f.is_open()) {
+        ppc_f << a << '\n';
+        ppc_f << b << '\n';
+        ppc_f << c << '\n';
+        ppc_f << C << '\n';
+        ppc_f << w << '\n';
+        ppc_f << h << '\n';
+    }
+    ppc_f.close();
+}
+
+V3 PPC::GetVD() {
+    V3 ret;
+    ret = (a % b).normalize();
+    return ret;
+}
+
+float PPC::GetF() {
+    float ret;
+    ret = GetVD()*c;
+    return ret;
+}
+
+V3 PPC::Ray(int u, int v) {
+    return a*(u + 0.5f) + b*(v + 0.5f) + c;
+}
+
+V3 PPC::Ray(float uf, float vf) {
+    return a*uf + b*vf + c;
+}
+
+V3 PPC::PC(int u, int v) {
+    return C + Ray(u,v);
+}
+
+float PPC::HFOV() {
+    return 2 * atan(w/2 * a.length() / GetF());
+}
+
+float PPC::PPu() {
+     return ((c*(-1.0f)) * a.normalize()) / a.length();
+}
+
+float PPC::PPv() {
+     return ((c*(-1.0f)) * b.normalize()) / b.length();
+}
 
 bool PPC::Project(V3 P, V3 &PP) {
     M33 cam;
@@ -48,16 +121,29 @@ void PPC::PositionAndOrient(V3 newC, V3 lap, V3 vpv) {
     C = newC;
 }
 
-V3 PPC::GetVD() {
+PPC PPC::LInterpolate(PPC p, float i) {
+    V3 C1 = C + (p.C - C)*i;
+    V3 VD1 = GetVD() + (p.GetVD() - GetVD())*i;
+    PPC ppc1(55.0f, w, h);
+    ppc1.PositionAndOrient(C1, VD1 + C,b*(-1));
+    return ppc1;
+}
+
+V3 PPC::GetPointOnImagePlane(float uf, float vf) {
     V3 ret;
-    ret = (a % b).normalize();
+    ret = C + c + a*uf + b*vf;
     return ret;
 }
 
-float PPC::GetF() {
-    float ret;
-    ret = GetVD()*c;
+V3 PPC::GetPointOnFocalPlane(float uf, float vf, float f) {
+    float of = GetF();
+    V3 ret;
+    ret = C + (c +a*uf + b*vf)*f / of;
     return ret;
+}
+
+void PPC::Zoom(float step) {
+    c = (a * -PPu()) - (b * PPv()) + (GetVD()*GetF() * step);
 }
 
 void PPC::TranslateX(float step) {

@@ -2,11 +2,11 @@
 
 #include "gui.h"
 
-void GUI::cb_DBG_i(Fl_Button*, void*) {
+void GUI::cb_Play_i(Fl_Button*, void*) {
   DBG_cb();
 }
-void GUI::cb_DBG(Fl_Button* o, void* v) {
-  ((GUI*)(o->parent()->user_data()))->cb_DBG_i(o,v);
+void GUI::cb_Play(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_Play_i(o,v);
 }
 
 void GUI::cb_BrightnessSlider_i(Fl_Value_Slider*, void*) {
@@ -134,14 +134,49 @@ void GUI::cb_TiltD_i(Fl_Button*, void*) {
 void GUI::cb_TiltD(Fl_Button* o, void* v) {
   ((GUI*)(o->parent()->user_data()))->cb_TiltD_i(o,v);
 }
+
+void GUI::cb_Load2_i(Fl_Button*, void*) {
+  load_camera_cb();
+}
+void GUI::cb_Load2(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_Load2_i(o,v);
+}
+
+void GUI::cb_Save1_i(Fl_Button*, void*) {
+  save_camera_cb();
+}
+void GUI::cb_Save1(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_Save1_i(o,v);
+}
+
+void GUI::cb_Z_i(Fl_Button*, void*) {
+  zoom_in_cb();
+}
+void GUI::cb_Z(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_Z_i(o,v);
+}
+
+void GUI::cb_Z1_i(Fl_Button*, void*) {
+  zoom_out_cb();
+}
+void GUI::cb_Z1(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_Z1_i(o,v);
+}
+
+void GUI::cb_StepSlider_i(Fl_Value_Slider*, void*) {
+  step_cb();
+}
+void GUI::cb_StepSlider(Fl_Value_Slider* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_StepSlider_i(o,v);
+}
 #include "scene.h"
 
 GUI::GUI() {
-  { uiw = new Fl_Double_Window(461, 199, "GUI");
+  { uiw = new Fl_Double_Window(615, 262, "GUI");
     uiw->user_data((void*)(this));
-    { Fl_Button* o = new Fl_Button(360, 0, 100, 25, "DBG");
+    { Fl_Button* o = new Fl_Button(515, 0, 100, 25, "Play");
       o->selection_color(FL_DARK_RED);
-      o->callback((Fl_Callback*)cb_DBG);
+      o->callback((Fl_Callback*)cb_Play);
     } // Fl_Button* o
     { BrightnessSlider = new Fl_Value_Slider(30, 0, 35, 170, "Brighness %");
       BrightnessSlider->maximum(100);
@@ -150,37 +185,37 @@ GUI::GUI() {
       BrightnessSlider->textsize(14);
       BrightnessSlider->callback((Fl_Callback*)cb_BrightnessSlider);
     } // Fl_Value_Slider* BrightnessSlider
-    { Fl_Button* o = new Fl_Button(215, 0, 95, 25, "Edge Detection");
+    { Fl_Button* o = new Fl_Button(370, 0, 95, 25, "Edge Detection");
       o->callback((Fl_Callback*)cb_Edge);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(360, 25, 100, 30, "Load image");
+    { Fl_Button* o = new Fl_Button(515, 25, 100, 30, "Load image");
       o->callback((Fl_Callback*)cb_Load);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(360, 85, 100, 30, "Save file");
+    { Fl_Button* o = new Fl_Button(515, 115, 100, 30, "Save file");
       o->callback((Fl_Callback*)cb_Save);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(185, 50, 20, 40, "L");
+    { Fl_Button* o = new Fl_Button(340, 50, 20, 40, "L");
       o->callback((Fl_Callback*)cb_L);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(230, 50, 20, 40, "R");
+    { Fl_Button* o = new Fl_Button(385, 50, 20, 40, "R");
       o->callback((Fl_Callback*)cb_R);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(205, 30, 25, 20, "U");
+    { Fl_Button* o = new Fl_Button(360, 30, 25, 20, "U");
       o->callback((Fl_Callback*)cb_U);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(205, 90, 25, 25, "D");
+    { Fl_Button* o = new Fl_Button(360, 90, 25, 25, "D");
       o->callback((Fl_Callback*)cb_D);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(265, 30, 40, 20, "TiltU");
+    { Fl_Button* o = new Fl_Button(420, 30, 40, 20, "TiltU");
       o->callback((Fl_Callback*)cb_TiltU);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(265, 50, 40, 20, "PanL");
+    { Fl_Button* o = new Fl_Button(420, 50, 40, 20, "PanL");
       o->callback((Fl_Callback*)cb_PanL);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(265, 70, 40, 20, "RollL");
+    { Fl_Button* o = new Fl_Button(420, 70, 40, 20, "RollL");
       o->callback((Fl_Callback*)cb_RollL);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(360, 55, 100, 30, "Load Geometry");
+    { Fl_Button* o = new Fl_Button(515, 85, 100, 30, "Load Geometry");
       o->callback((Fl_Callback*)cb_Load1);
     } // Fl_Button* o
     { ContrastSlider = new Fl_Value_Slider(105, 0, 35, 170, "Contrast");
@@ -190,21 +225,40 @@ GUI::GUI() {
       ContrastSlider->textsize(14);
       ContrastSlider->callback((Fl_Callback*)cb_ContrastSlider);
     } // Fl_Value_Slider* ContrastSlider
-    { Fl_Button* o = new Fl_Button(205, 50, 25, 20, "F");
+    { Fl_Button* o = new Fl_Button(360, 50, 25, 20, "F");
       o->callback((Fl_Callback*)cb_F);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(205, 70, 25, 20, "B");
+    { Fl_Button* o = new Fl_Button(360, 70, 25, 20, "B");
       o->callback((Fl_Callback*)cb_B);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(305, 50, 45, 20, "PanR");
+    { Fl_Button* o = new Fl_Button(460, 50, 45, 20, "PanR");
       o->callback((Fl_Callback*)cb_PanR);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(305, 70, 45, 20, "RollR");
+    { Fl_Button* o = new Fl_Button(460, 70, 45, 20, "RollR");
       o->callback((Fl_Callback*)cb_RollR);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(305, 30, 45, 20, "TiltD");
+    { Fl_Button* o = new Fl_Button(460, 30, 45, 20, "TiltD");
       o->callback((Fl_Callback*)cb_TiltD);
     } // Fl_Button* o
+    { Fl_Button* o = new Fl_Button(515, 55, 100, 30, "Load Camera");
+      o->callback((Fl_Callback*)cb_Load2);
+    } // Fl_Button* o
+    { Fl_Button* o = new Fl_Button(515, 145, 100, 30, "Save Camera");
+      o->callback((Fl_Callback*)cb_Save1);
+    } // Fl_Button* o
+    { Fl_Button* o = new Fl_Button(420, 90, 40, 20, "Z In");
+      o->callback((Fl_Callback*)cb_Z);
+    } // Fl_Button* o
+    { Fl_Button* o = new Fl_Button(460, 90, 45, 20, "Z Out");
+      o->callback((Fl_Callback*)cb_Z1);
+    } // Fl_Button* o
+    { StepSlider = new Fl_Value_Slider(190, 0, 35, 170, "Move Step");
+      StepSlider->maximum(100);
+      StepSlider->step(0.1);
+      StepSlider->value(10);
+      StepSlider->textsize(14);
+      StepSlider->callback((Fl_Callback*)cb_StepSlider);
+    } // Fl_Value_Slider* StepSlider
     uiw->end();
   } // Fl_Double_Window* uiw
 }
@@ -239,7 +293,7 @@ void GUI::detect_edges_cb() {
 }
 
 void GUI::load_geometry_cb() {
-  printf("Hello, World!\n");
+  scene->loadGeometry();
 }
 
 void GUI::left_cb() {
@@ -292,4 +346,24 @@ void GUI::panR_cb() {
 
 void GUI::rollR_cb() {
   scene->rollRight();
+}
+
+void GUI::load_camera_cb() {
+  scene->LoadCamera();
+}
+
+void GUI::save_camera_cb() {
+  scene->SaveCamera();
+}
+
+void GUI::zoom_in_cb() {
+  scene->ZoomIn();
+}
+
+void GUI::zoom_out_cb() {
+  scene->ZoomOut();
+}
+
+void GUI::step_cb() {
+  scene->adjustStep();
 }

@@ -95,6 +95,11 @@ TMesh::TMesh(V3 center, V3 dims, unsigned int color) {
 
 }
 
+/*
+TMesh::TMesh(AABB *aab, unsigned int color) :
+    TMesh((aab->corners[1] - aab->corners[0]) / 2, (aab->corners[0] - corners[1]).length(), color) { }
+*/
+
 void TMesh::RenderPoints(PPC *ppc, FrameBuffer *fb, int psize) {
 
     for (int vi = 0; vi < vertsN; vi++) {
@@ -119,8 +124,7 @@ void TMesh::RenderWireframe(PPC *ppc, FrameBuffer *fb, unsigned int color) {
 
 }
 
-
-void TMesh::LoadBin(char *fname) {
+void TMesh::LoadBin(const char *fname) {
 
     ifstream ifs(fname, ios::binary);
     if (ifs.fail()) {

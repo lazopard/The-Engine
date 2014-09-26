@@ -14,7 +14,8 @@ class TMesh {
         AABB *aabb;
         TMesh();
         TMesh(V3 center, V3 dims, unsigned int color);
-        void LoadBin(char *fname);
+        //TMesh(AABB aab);
+        void LoadBin(const char *fname);
         void RenderPoints(PPC *ppc, FrameBuffer *fb, int psize);
         void RenderWireframe(PPC *ppc, FrameBuffer *fb, unsigned int color);
         void SetAABB();

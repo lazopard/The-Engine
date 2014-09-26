@@ -12,11 +12,17 @@ public:
   PPC *ppc;
   TMesh **tmeshes;
   int tmeshesN;
+  float step;
   Scene();
   void DBG();
   void Render();
   void loadImage();
+  void loadGeometry();
+  void LoadCamera();
+  void SaveCamera();
   void saveImage();
+  void ZoomIn();
+  void ZoomOut();
   void changeBrightness();
   void changeContrast();
   void detectEdges();
@@ -26,6 +32,7 @@ public:
   void translateDown();
   void translateFront();
   void translateBack();
+  void adjustStep();
   void tiltUp();
   void tiltDown();
   void panLeft();
