@@ -15,6 +15,8 @@ public:
   float step;
   Scene();
   void DBG();
+  void Play();
+  void saveTiff(const char *filename);
   void Render();
   void loadImage();
   void loadGeometry();

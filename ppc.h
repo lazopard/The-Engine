@@ -2,6 +2,8 @@
 
 #include "v3.h"
 
+class FrameBuffer;
+
 class PPC {
     public:
         V3 a, b, c, C;
@@ -29,5 +31,8 @@ class PPC {
         void Pan(float theta);
         void Tilt(float theta);
         void Roll(float theta);
+        void SetByInterpolation(PPC* ppc0, PPC* ppc1, float frac);
+        void RenderWireframe(PPC *ppc, FrameBuffer *fb, float f,
+                             unsigned int color);
 };
 

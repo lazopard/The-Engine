@@ -214,3 +214,35 @@ void FrameBuffer::AdjustContrast(float c) {
     contrast = c;
 }
 
+bool FrameBuffer::IsOutsideFrame(int u, int v) {
+
+  bool ret;
+  ret = u < 0 || u > w-1 || v < 0 || v > h-1;
+  return ret;
+
+}
+
+void FrameBuffer::Clear(unsigned int bgr, float z0) {
+
+  Set(bgr);
+  for (int i = 0; i < w*h; i++) {
+    zb[i] = z0;
+  }
+
+}
+
+bool FrameBuffer::IsFarther(int u, int v, float currz) {
+
+  if (zb[(h-1-v)*w+u] >= currz)
+    return true;
+
+  return false;
+
+}
+
+void FrameBuffer::SetZ(int u, int v, float currz) {
+
+  zb[(h-1-v)*w+u] = currz;
+
+}
+

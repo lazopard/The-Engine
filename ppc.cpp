@@ -185,3 +185,28 @@ void PPC::Roll(float theta) {
     c = c1;
 }
 
+void PPC::SetByInterpolation(PPC* ppc0, PPC* ppc1, float frac) {
+
+  V3 newC = ppc0->C + (ppc1->C - ppc0->C)*frac;
+  V3 vd0 = ppc0->a ^ ppc0->b;
+  V3 vd1 = ppc1->a ^ ppc1->b;
+  V3 newvd = (vd0 + (vd1 - vd0)*frac).UnitVector();
+  V3 vpv = (ppc0->b + (ppc1->b - ppc0->b)*frac).UnitVector()*-1.0f;
+  PositionAndOrient(newC, newC + newvd, vpv);
+
+}
+
+void PPC::RenderWireframe(PPC *ppc, FrameBuffer *fb, float f,
+    unsigned int color) {
+
+  V3 baseCorners[4];
+  baseCorners[0] = GetPointOnFocalPlane(0.0f, 0.0f, f);
+  baseCorners[1] = GetPointOnFocalPlane(0.0f, (float)h, f);
+  baseCorners[2] = GetPointOnFocalPlane((float)w, (float)h, f);
+  baseCorners[3] = GetPointOnFocalPlane((float)w, 0.0f, f);
+  for (int si = 0; si < 4; si++) {
+    fb->Draw3DSegment(C, baseCorners[si], ppc, color);
+    fb->Draw3DSegment(baseCorners[si], baseCorners[(si+1)%4], ppc, color);
+  }
+
+}

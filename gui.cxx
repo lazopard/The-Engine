@@ -273,7 +273,7 @@ void GUI::show() {
 }
 
 void GUI::DBG_cb() {
-  scene->DBG();
+  scene->Play();
 }
 
 void GUI::load_cb() {

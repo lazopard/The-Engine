@@ -1,4 +1,5 @@
-Play -> plays the scene
+Play -> plays the scene, press it twice to see full scene, saves path to camera_path.txt
+The images for the movie are generated with no problem, but I could not figure out how to make it into a movie, they are generated when you press play.
 Load image -> load tiff image
 Load camera -> load ppc from file
 Load Geometry -> load bin file

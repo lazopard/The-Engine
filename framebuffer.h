@@ -35,5 +35,7 @@ public:
   void Convolve33(M33 kernel, FrameBuffer *& fb1);
   void Draw3DPoint(V3 pt, PPC *ppc, int psize, V3 color);
   void Draw3DSegment(V3 p0, V3 p1, PPC *ppc, unsigned int color);
+  void Clear(unsigned int bgr, float z0);
+  bool IsOutsideFrame(int u, int v);
 };
 

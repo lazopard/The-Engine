@@ -1,7 +1,9 @@
 #include "scene.h"
 #include "m33.h"
 
+#include <stdlib.h>
 #include <iostream>
+#include <fstream>
 #include <tiffio.h>
 
 using namespace std;
@@ -78,22 +80,180 @@ void Scene::Render() {
 }
 
 //play
+void Scene::Play() {
+    DBG();
+    DBG();
+    DBG();
+    DBG();
+    DBG();
+}
+
 void Scene::DBG() {
-    /*
-    V3 C0 = ppc->C;
-    V3 C1(0.0f, 180.0f, -30.0f);
-    V3 lap = tmeshes[1]->GetCenter();
-    V3 vpv = V3(0.0f, 1.0f, 0.0f);
+
+    PPC ppc1(*ppc);
+    V3 newC(-50.0f, 30.0f, -150.0f);
+    V3 lap = newC + V3(50.0f, -5.0f, -100.0f);
+    V3 vpv(0.0f, 1.0f, 0.0f);
+    ppc1.PositionAndOrient(newC, lap, vpv);
+    float f = 40.0f;
+
+    PPC ppc2(*ppc);
+    V3 newC2(30.0f, -30.0f, -150.0f);
+    V3 lap2 = newC2 + V3(-50.0f, +5.0f, -100.0f);
+    V3 vpv2(0.0f, 1.0f, 0.0f);
+    ppc2.PositionAndOrient(newC2, lap2, vpv2);
+
     int stepsN = 100;
     for (int si = 0; si < stepsN; si++) {
+        fb->Clear(0xFFFFFF, 0.0f);
+        ppc1.RenderWireframe(ppc, fb, f, 0xFF0000FF);
+        ppc2.RenderWireframe(ppc, fb, f, 0xFF00FF00);
+
+        PPC ppc3(*ppc);
+        ppc3.SetByInterpolation(&ppc1, &ppc2, (float) si / (float) (stepsN-                                                         1));
+        ppc3.RenderWireframe(ppc, fb, f, 0xFF000000);
+        fb->redraw();
+        Fl::check();
+    }
+
+    fb->redraw();
+
+
+
+    return;
+    ofstream of;
+    of.open("camera_path.txt");
+    V3 C0 = ppc->C;
+    //V3 lap = tmeshes[0]->GetCenter();
+    //V3 vpv = V3(0.0f, 1.0f, 0.0f);
+
+    int frames = 0;
+
+    //Tilt
+    step = 20;
+    ppc->Tilt(step);
+    V3 C1 = ppc->C;
+    ppc->Tilt(-step);
+    //int stepsN = 100;
+    for (int si = 0; si < stepsN; si++) {
       V3 newC = C0 + (C1-C0)*(float)si/(float)(stepsN-1);
+      of << newC << endl;
       ppc->PositionAndOrient(newC, lap, vpv);
       Render();
       Fl::check();
+      string s = to_string(frames);
+      s+=".tif";
+      const char *f = s.c_str();
+      saveTiff(f);
+      frames++;
     }
-    */
+    ppc->Tilt(step);
 
-    return;
+    C0 = ppc->C;
+
+    //Roll 
+    ppc->Roll(step);
+    C1 = ppc->C;
+    ppc->Roll(-step);
+    for (int si = 0; si < stepsN; si++) {
+      V3 newC = C0 + (C1-C0)*(float)si/(float)(stepsN-1);
+      of << newC << endl;
+      ppc->PositionAndOrient(newC, lap, vpv);
+      Render();
+      Fl::check();
+      string s = to_string(frames);
+      s+=".tif";
+      const char *f = s.c_str();
+      saveTiff(f);
+      frames++;
+    }
+    ppc->Roll(step);
+
+    C0 = ppc->C;
+
+    //Pan
+    ppc->Pan(step);
+    C1 = ppc->C;
+    ppc->Pan(-step);
+    for (int si = 0; si < stepsN; si++) {
+      V3 newC = C0 + (C1-C0)*(float)si/(float)(stepsN-1);
+      of << newC << endl;
+      ppc->PositionAndOrient(newC, lap, vpv);
+      Render();
+      Fl::check();
+      string s = to_string(frames);
+      s+=".tif";
+      const char *f = s.c_str();
+      saveTiff(f);
+      frames++;
+    }
+    ppc->Pan(step);
+
+    C0 = ppc->C;
+
+    //Left
+    ppc->TranslateX(-step);
+    C1 = ppc->C;
+    ppc->TranslateX(step);
+    for (int si = 0; si < stepsN; si++) {
+      V3 newC = C0 + (C1-C0)*(float)si/(float)(stepsN-1);
+      of << newC << endl;
+      ppc->PositionAndOrient(newC, lap, vpv);
+      Render();
+      Fl::check();
+      string s = to_string(frames);
+      s+=".tif";
+      const char *f = s.c_str();
+      saveTiff(f);
+      frames++;
+    }
+    ppc->TranslateX(-step);
+
+    C0 = ppc->C;
+
+    //Up
+    ppc->TranslateY(step);
+    C1 = ppc->C;
+    ppc->TranslateY(-step);
+    for (int si = 0; si < stepsN; si++) {
+      V3 newC = C0 + (C1-C0)*(float)si/(float)(stepsN-1);
+      of << newC << endl;
+      ppc->PositionAndOrient(newC, lap, vpv);
+      Render();
+      Fl::check();
+      string s = to_string(frames);
+      s+=".tif";
+      const char *f = s.c_str();
+      saveTiff(f);
+
+      frames++;
+    }
+    ppc->TranslateY(step);
+
+    C0 = ppc->C;
+
+    //Back
+    ppc->TranslateZ(-step);
+    C1 = ppc->C;
+    ppc->TranslateZ(step);
+    for (int si = 0; si < stepsN; si++) {
+      V3 newC = C0 + (C1-C0)*(float)si/(float)(stepsN-1);
+      of << newC << endl;
+      ppc->PositionAndOrient(newC, lap, vpv);
+      Render();
+      Fl::check();
+      string s = to_string(frames);
+      s+=".tif";
+      const char *f = s.c_str();
+      saveTiff(f);
+
+      frames++;
+    }
+    ppc->TranslateZ(-step);
+
+    C0 = ppc->C;
+
+    of.close();
 }
 
 void Scene::changeBrightness() {
@@ -274,20 +434,8 @@ void Scene::loadImage() {
     TIFFClose(tif);
 }
 
-void Scene::saveImage() {
-    Fl_File_Chooser chooser(".",
-                            "*",
-                            Fl_File_Chooser::CREATE,
-                            "Save File as...");
-    chooser.show();
-    while(chooser.shown())
-    { Fl::wait(); }
-
-    // User hit cancel
-    if ( chooser.value() == NULL )
-    { fprintf(stderr, "(User hit 'Cancel')\n"); return; }
-
-    TIFF *tif = TIFFOpen(chooser.value(), "w");
+void Scene::saveTiff(const char *filename) {
+    TIFF *tif = TIFFOpen(filename, "w");
     if (!tif) {
         fprintf(stderr, "TIFFOPEN failed\n");
         exit(1);
@@ -321,5 +469,22 @@ void Scene::saveImage() {
     if (buf)
         _TIFFfree(buf);
     TIFFClose(tif);
+
+}
+
+void Scene::saveImage() {
+    Fl_File_Chooser chooser(".",
+                            "*",
+                            Fl_File_Chooser::CREATE,
+                            "Save File as...");
+    chooser.show();
+    while(chooser.shown())
+    { Fl::wait(); }
+
+    // User hit cancel
+    if ( chooser.value() == NULL )
+    { fprintf(stderr, "(User hit 'Cancel')\n"); return; }
+
+    saveTiff(chooser.value());
 }
 

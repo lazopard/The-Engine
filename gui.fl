@@ -9,13 +9,13 @@ class GUI {open
   Function {GUI()} {open
   } {
     Fl_Window uiw {
-      label GUI open
-      xywh {536 44 461 199} type Double visible
+      label GUI open selected
+      xywh {589 92 615 262} type Double hide
     } {
       Fl_Button {} {
-        label DBG
+        label Play
         callback {DBG_cb()}
-        xywh {360 0 100 25} selection_color 72
+        xywh {515 0 100 25} selection_color 72
       }
       Fl_Value_Slider BrightnessSlider {
         label {Brighness %}
@@ -25,57 +25,57 @@ class GUI {open
       Fl_Button {} {
         label {Edge Detection}
         callback {detect_edges_cb()}
-        xywh {215 0 95 25}
+        xywh {370 0 95 25}
       }
       Fl_Button {} {
         label {Load image}
         callback {load_cb()}
-        xywh {360 25 100 30}
+        xywh {515 25 100 30}
       }
       Fl_Button {} {
         label {Save file}
         callback {save_cb()}
-        xywh {360 85 100 30}
+        xywh {515 115 100 30}
       }
       Fl_Button {} {
         label L
         callback {left_cb()}
-        xywh {185 50 20 40}
+        xywh {340 50 20 40}
       }
       Fl_Button {} {
         label R
         callback {right_cb()}
-        xywh {230 50 20 40}
+        xywh {385 50 20 40}
       }
       Fl_Button {} {
         label U
         callback {up_cb()}
-        xywh {205 30 25 20}
+        xywh {360 30 25 20}
       }
       Fl_Button {} {
         label D
         callback {down_cb()}
-        xywh {205 90 25 25}
+        xywh {360 90 25 25}
       }
       Fl_Button {} {
         label TiltU
         callback {tiltU_cb()}
-        xywh {265 30 40 20}
+        xywh {420 30 40 20}
       }
       Fl_Button {} {
         label PanL
         callback {panL_cb()}
-        xywh {265 50 40 20}
+        xywh {420 50 40 20}
       }
       Fl_Button {} {
         label RollL
         callback {rollL_cb()}
-        xywh {265 70 40 20}
+        xywh {420 70 40 20}
       }
       Fl_Button {} {
         label {Load Geometry}
         callback {load_geometry_cb()}
-        xywh {360 55 100 30}
+        xywh {515 85 100 30}
       }
       Fl_Value_Slider ContrastSlider {
         label Contrast
@@ -85,27 +85,52 @@ class GUI {open
       Fl_Button {} {
         label F
         callback {f_cb()}
-        xywh {205 50 25 20}
+        xywh {360 50 25 20}
       }
       Fl_Button {} {
         label B
         callback {b_cb()}
-        xywh {205 70 25 20}
+        xywh {360 70 25 20}
       }
       Fl_Button {} {
         label PanR
         callback {panR_cb()}
-        xywh {305 50 45 20}
+        xywh {460 50 45 20}
       }
       Fl_Button {} {
         label RollR
         callback {rollR_cb()}
-        xywh {305 70 45 20}
+        xywh {460 70 45 20}
       }
       Fl_Button {} {
         label TiltD
-        callback {tiltD_cb()} selected
-        xywh {305 30 45 20}
+        callback {tiltD_cb()}
+        xywh {460 30 45 20}
+      }
+      Fl_Button {} {
+        label {Load Camera}
+        callback {load_camera_cb()}
+        xywh {515 55 100 30}
+      }
+      Fl_Button {} {
+        label {Save Camera}
+        callback {save_camera_cb()}
+        xywh {515 145 100 30}
+      }
+      Fl_Button {} {
+        label {Z In}
+        callback {zoom_in_cb()}
+        xywh {420 90 40 20}
+      }
+      Fl_Button {} {
+        label {Z Out}
+        callback {zoom_out_cb()}
+        xywh {460 90 45 20}
+      }
+      Fl_Value_Slider StepSlider {
+        label {Move Step}
+        callback {step_cb()}
+        xywh {190 0 35 170} maximum 100 step 0.1 value 10 textsize 14
       }
     }
   }
@@ -115,8 +140,9 @@ class GUI {open
   Function {show()} {} {
     code {uiw->show();} {}
   }
-  Function {DBG_cb()} {} {
-    code {scene->DBG();} {}
+  Function {DBG_cb()} {open
+  } {
+    code {scene->Play();} {}
   }
   Function {load_cb()} {} {
     code {scene->loadImage();} {}
@@ -131,7 +157,7 @@ class GUI {open
     code {scene->detectEdges();} {}
   }
   Function {load_geometry_cb()} {} {
-    code {printf("Hello, World!\\n");} {}
+    code {scene->loadGeometry();} {}
   }
   Function {left_cb()} {} {
     code {scene->translateLeft();} {}
@@ -171,5 +197,20 @@ class GUI {open
   }
   Function {rollR_cb()} {} {
     code {scene->rollRight();} {}
+  }
+  Function {load_camera_cb()} {} {
+    code {scene->LoadCamera();} {}
+  }
+  Function {save_camera_cb()} {} {
+    code {scene->SaveCamera();} {}
+  }
+  Function {zoom_in_cb()} {} {
+    code {scene->ZoomIn();} {}
+  }
+  Function {zoom_out_cb()} {} {
+    code {scene->ZoomOut();} {}
+  }
+  Function {step_cb()} {} {
+    code {scene->adjustStep();} {}
   }
 } 

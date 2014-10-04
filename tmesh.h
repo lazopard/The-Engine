@@ -24,5 +24,9 @@ class TMesh {
         void Position(V3 newCenter);
         void ScaleToNewDiagonal(float newDiagonal);
         void Scale(float scf);
+        void RenderFilled(PPC *ppc, FrameBuffer *fb, 
+        unsigned int color, V3 L, float ka, int renderMode);
+
+
 };
 
