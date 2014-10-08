@@ -23,7 +23,6 @@ class PPC {
         V3 GetPointOnFocalPlane(float uf, float vf, float f);
         bool Project(V3 P, V3 &PP);
         void PositionAndOrient(V3 newC, V3 lap, V3 vpv);
-        PPC LInterpolate(PPC p, float n);
         void Zoom(float step);
         void TranslateX(float step);
         void TranslateY(float step);

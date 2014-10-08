@@ -14,6 +14,7 @@ FrameBuffer::FrameBuffer(int u0, int v0,
   w = _w;
   h = _h;
   pix = new unsigned int[w*h];
+  zb = new float[w*h];
   brightness = DEFAULT_B;
   contrast = DEFAULT_C;
 }

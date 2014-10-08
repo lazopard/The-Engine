@@ -11,6 +11,7 @@
 class FrameBuffer : public Fl_Gl_Window {
 public:
   unsigned int *pix, *opix;
+  float *zb;
   int w, h;
   static const float DEFAULT_B, DEFAULT_C;
   float brightness; // 0<= brightness <= 100
@@ -37,5 +38,7 @@ public:
   void Draw3DSegment(V3 p0, V3 p1, PPC *ppc, unsigned int color);
   void Clear(unsigned int bgr, float z0);
   bool IsOutsideFrame(int u, int v);
+  bool IsFarther(int u, int v, float currz);
+  void SetZ(int u, int v, float currz);
 };
 

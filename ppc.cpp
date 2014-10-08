@@ -4,6 +4,7 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
+#include "framebuffer.h"
 
 PPC::PPC(float hfov, int _w, int _h) : w(_w), h(_h) {
     C = V3(0.0f, 0.0f, 0.0f);
@@ -121,14 +122,6 @@ void PPC::PositionAndOrient(V3 newC, V3 lap, V3 vpv) {
     C = newC;
 }
 
-PPC PPC::LInterpolate(PPC p, float i) {
-    V3 C1 = C + (p.C - C)*i;
-    V3 VD1 = GetVD() + (p.GetVD() - GetVD())*i;
-    PPC ppc1(55.0f, w, h);
-    ppc1.PositionAndOrient(C1, VD1 + C,b*(-1));
-    return ppc1;
-}
-
 V3 PPC::GetPointOnImagePlane(float uf, float vf) {
     V3 ret;
     ret = C + c + a*uf + b*vf;
@@ -188,10 +181,10 @@ void PPC::Roll(float theta) {
 void PPC::SetByInterpolation(PPC* ppc0, PPC* ppc1, float frac) {
 
   V3 newC = ppc0->C + (ppc1->C - ppc0->C)*frac;
-  V3 vd0 = ppc0->a ^ ppc0->b;
-  V3 vd1 = ppc1->a ^ ppc1->b;
-  V3 newvd = (vd0 + (vd1 - vd0)*frac).UnitVector();
-  V3 vpv = (ppc0->b + (ppc1->b - ppc0->b)*frac).UnitVector()*-1.0f;
+  V3 vd0 = ppc0->a % ppc0->b;
+  V3 vd1 = ppc1->a % ppc1->b;
+  V3 newvd = (vd0 + (vd1 - vd0)*frac).normalize();
+  V3 vpv = (ppc0->b + (ppc1->b - ppc0->b)*frac).normalize()*-1.0f;
   PositionAndOrient(newC, newC + newvd, vpv);
 
 }
@@ -210,3 +203,4 @@ void PPC::RenderWireframe(PPC *ppc, FrameBuffer *fb, float f,
   }
 
 }
+

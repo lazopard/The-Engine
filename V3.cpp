@@ -87,7 +87,7 @@ float V3::length() {
 }
 
 float V3::lengthSquared() {
-    return (xyz[0]*xyz[0]) + (xyz[1]*xyz[1]) + (xyz[2]*xyz[2]);
+    return length()*length();
 }
 
 V3 V3::normalize() {
@@ -237,5 +237,9 @@ void AABB::AddPoint(V3 pt) {
     if (corners[1][2] < pt[2]) {
         corners[1][2] = pt[2];
     }
+}
+
+V3& AABB::operator[](unsigned i) {
+    return corners[i];
 }
 

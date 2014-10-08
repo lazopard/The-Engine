@@ -14,11 +14,11 @@ class TMesh {
         AABB *aabb;
         TMesh();
         TMesh(V3 center, V3 dims, unsigned int color);
-        //TMesh(AABB aab);
         void LoadBin(const char *fname);
         void RenderPoints(PPC *ppc, FrameBuffer *fb, int psize);
         void RenderWireframe(PPC *ppc, FrameBuffer *fb, unsigned int color);
         void SetAABB();
+        void ClipAABB();
         void Translate(V3 tv);
         V3 GetCenter();
         void Position(V3 newCenter);
@@ -26,7 +26,6 @@ class TMesh {
         void Scale(float scf);
         void RenderFilled(PPC *ppc, FrameBuffer *fb, 
         unsigned int color, V3 L, float ka, int renderMode);
-
 
 };
 

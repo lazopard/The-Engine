@@ -65,5 +65,6 @@ class AABB {
         V3 corners[2];
         AABB(V3 firstPoint);
         void AddPoint(V3 pt);
+        V3& operator[](unsigned);
 };
 

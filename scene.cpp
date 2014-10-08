@@ -70,25 +70,22 @@ void Scene::SaveCamera() {
 
 void Scene::Render() {
     fb->Set(0xFFFFFFFF);
+    V3 v(0,0,0);
     for (int tmi = 0; tmi < tmeshesN; tmi++) {
         if (!tmeshes[tmi]->enabled)
             continue;
-        tmeshes[tmi]->RenderWireframe(ppc, fb, 0xFF000000);
-        tmeshes[tmi]->RenderPoints(ppc, fb, 3);
+        tmeshes[tmi]->RenderFilled(ppc, fb, 0xFF000000, v, 0.1, 2);
+        //tmeshes[tmi]->RenderPoints(ppc, fb, 3);
     }
     fb->redraw();
 }
 
 //play
 void Scene::Play() {
-    DBG();
-    DBG();
-    DBG();
-    DBG();
-    DBG();
+    PlayInterpolationAnimation();
 }
 
-void Scene::DBG() {
+void Scene::PlayInterpolationAnimation() {
 
     PPC ppc1(*ppc);
     V3 newC(-50.0f, 30.0f, -150.0f);
@@ -110,22 +107,22 @@ void Scene::DBG() {
         ppc2.RenderWireframe(ppc, fb, f, 0xFF00FF00);
 
         PPC ppc3(*ppc);
-        ppc3.SetByInterpolation(&ppc1, &ppc2, (float) si / (float) (stepsN-                                                         1));
+        ppc3.SetByInterpolation(&ppc1, &ppc2, (float) si / (float) (stepsN-1));
         ppc3.RenderWireframe(ppc, fb, f, 0xFF000000);
         fb->redraw();
         Fl::check();
     }
 
     fb->redraw();
-
-
-
     return;
+}
+
+void Scene::PPCMovementAnimation() {
     ofstream of;
     of.open("camera_path.txt");
     V3 C0 = ppc->C;
-    //V3 lap = tmeshes[0]->GetCenter();
-    //V3 vpv = V3(0.0f, 1.0f, 0.0f);
+    V3 lap = tmeshes[0]->GetCenter();
+    V3 vpv = V3(0.0f, 1.0f, 0.0f);
 
     int frames = 0;
 
@@ -134,7 +131,7 @@ void Scene::DBG() {
     ppc->Tilt(step);
     V3 C1 = ppc->C;
     ppc->Tilt(-step);
-    //int stepsN = 100;
+    int stepsN = 100;
     for (int si = 0; si < stepsN; si++) {
       V3 newC = C0 + (C1-C0)*(float)si/(float)(stepsN-1);
       of << newC << endl;
