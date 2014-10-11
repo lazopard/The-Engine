@@ -30,6 +30,9 @@ Scene::Scene() {
     float hfov = 55.0f;
     ppc = new PPC(hfov, w, h);
 
+    ka=se=0;
+    sm = 0;
+
     tmeshesN = 0;
     tmeshes = 0;
 
@@ -74,7 +77,7 @@ void Scene::Render() {
     for (int tmi = 0; tmi < tmeshesN; tmi++) {
         if (!tmeshes[tmi]->enabled)
             continue;
-        tmeshes[tmi]->RenderFilled(ppc, fb, 0xFF000000, v, 0.1, 2);
+        tmeshes[tmi]->RenderFilled(ppc, fb, 0xFF000000, v, ka, se, sm);
         //tmeshes[tmi]->RenderPoints(ppc, fb, 3);
     }
     fb->redraw();
@@ -265,6 +268,28 @@ void Scene::changeContrast() {
     Render();
 }
 
+void Scene::adjustAmbient() {
+    ka = gui->AmbientFactor->value();
+    Render();
+}
+
+void Scene::adjustSpecular() {
+    se = gui->SpecularExponent->value();
+    Render();
+}
+
+void Scene::lightSourceUp() {
+}
+
+void Scene::lightSourceDown() {
+}
+
+void Scene::lightSourceLeft() {
+}
+
+void Scene::lightSourceRight() {
+}
+
 void Scene::detectEdges() {
   M33 edgeDetect;
   edgeDetect[0] = V3(0, 1, 0);
@@ -349,6 +374,21 @@ void Scene::rollLeft() {
 
 void Scene::rollRight() {
     ppc->Roll(-step);
+    Render();
+}
+
+void Scene::sm1() {
+    sm = 0;
+    Render();
+}
+
+void Scene::sm2() {
+    sm = 1;
+    Render();
+}
+
+void Scene::sm3() {
+    sm = 2;
     Render();
 }
 

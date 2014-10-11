@@ -15,6 +15,7 @@ FrameBuffer::FrameBuffer(int u0, int v0,
   h = _h;
   pix = new unsigned int[w*h];
   zb = new float[w*h];
+
   brightness = DEFAULT_B;
   contrast = DEFAULT_C;
 }
@@ -24,6 +25,7 @@ FrameBuffer::FrameBuffer(unsigned int *raster, int u0, int v0, unsigned int _w, 
     h = _h;
     pix = new unsigned int[w*h];
     _TIFFmemcpy(pix, raster, (w*h) * sizeof(uint32));
+
     brightness = DEFAULT_B;
     contrast = DEFAULT_C;
 }
@@ -76,28 +78,38 @@ void FrameBuffer::DrawPoint(int u, int v, int psize, unsigned int color) {
   }
 }
 
-void FrameBuffer::DrawSegment(float u0f, float v0f, float u1f, float v1f, 
-                              unsigned int color) {
+void FrameBuffer::DrawSegment(V3 pp0, V3 pp1, unsigned int color) {
 
-    float du = abs(u1f-u0f);
-    float dv = abs(v1f-v0f);
-    int stepsN = (du < dv) ? 1 + (int) dv : 1 + (int) du;
+  float u0f = pp0[0];
+  float u1f = pp1[0];
+  float v0f = pp0[1];
+  float v1f = pp1[1];
 
-    V3 startingPoint(u0f, v0f, 0.0f);
-    V3 endingPoint(u1f, v1f, 0.0f);
-    V3 currentPoint = startingPoint;
-    int segsN;
-    if (stepsN == 1)
-      segsN = 1;
-    else
-      segsN = stepsN-1;
-    V3 segmentStep = (endingPoint - startingPoint) / (float) segsN;
-    for (int i = 0; i < stepsN; i++) {
-      int u = (int) currentPoint[0];
-      int v = (int) currentPoint[1];
-      SetSafe(u, v, color);
-      currentPoint = currentPoint + segmentStep;
-    }
+  float du = fabsf(u1f-u0f);
+  float dv = fabsf(v1f-v0f);
+  int stepsN = (du < dv) ? 1 + (int) dv : 1 + (int) du;
+
+  V3 startingPoint(pp0);
+  V3 endingPoint(pp1);
+  V3 currentPoint = startingPoint;
+  int segsN;
+  if (stepsN == 1)
+    segsN = 1;
+  else
+    segsN = stepsN-1;
+  V3 segmentStep = (endingPoint - startingPoint) / (float) segsN;
+  for (int i = 0; i < stepsN; i++) {
+    int u = (int) currentPoint[0];
+    int v = (int) currentPoint[1];
+    if (IsOutsideFrame(u, v))
+      continue;
+    if (IsFarther(u, v, currentPoint[2]))
+      continue;
+    SetZ(u, v, currentPoint[2]);
+    Set(u, v, color);
+    currentPoint = currentPoint + segmentStep;
+  }
+
 }
 
 //8-way symmetry circle
@@ -204,7 +216,8 @@ void FrameBuffer::Draw3DSegment(V3 p0, V3 p1, PPC *ppc, unsigned int color) {
         return;
     if (!ppc->Project(p1, pp1))
         return;
-    DrawSegment(pp0[0], pp0[1], pp1[0], pp1[1], color);  
+    DrawSegment(pp0, pp1, color);  
+
 }
 
 void FrameBuffer::AdjustBrightness(float b) { // 0 <= b <= 100

@@ -13,6 +13,8 @@ public:
   TMesh **tmeshes;
   int tmeshesN;
   float step;
+  float ka, se;
+  int sm;
   Scene();
   void DBG();
   void Play();
@@ -43,6 +45,15 @@ public:
   void rollRight();
   void PlayInterpolationAnimation();
   void PPCMovementAnimation();
+  void adjustAmbient();
+  void adjustSpecular();
+  void lightSourceUp();
+  void lightSourceDown();
+  void lightSourceLeft();
+  void lightSourceRight();
+  void sm1();
+  void sm2();
+  void sm3();
 };
 
 extern Scene *scene;

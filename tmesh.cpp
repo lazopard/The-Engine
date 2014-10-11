@@ -226,7 +226,6 @@ void TMesh::ScaleToNewDiagonal(float newDiagonal) {
 
     float oldDiagonal = (aabb->corners[1] - aabb->corners[0]).length();
     float sf = newDiagonal / oldDiagonal;
-    //float Length();
     V3 oldCenter = GetCenter();
     Position(V3(0.0f, 0.0f, 0.0f));
     Scale(sf);
@@ -244,119 +243,104 @@ void TMesh::Scale(float scf) {
     SetAABB();
 }
 
-void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb, 
-        unsigned int color, V3 L, float ka, int renderMode) {
+void setUpEdgeEquations(V3 *edges, V3 *xy) {
 
-    V3 *pverts = new V3[vertsN];
-    for (int vi = 0; vi < vertsN; vi++) {
-        ppc->Project(verts[vi], pverts[vi]);
-    }
+        V3 *e1 = &(edges[0]);
+        V3 *e2 = &(edges[1]);
+        V3 *e3 = &(edges[2]);
 
-    for (int tri = 0; tri < trisN; tri++) {
-        int vinds[3];
-        vinds[0] = tris[tri*3+0];
-        vinds[1] = tris[tri*3+1];
-        vinds[2] = tris[tri*3+2];
-
-        // Do not render triangle if any of its vertices had an invalid projection
-        V3 ppt0;
-        V3 ppt1;
-        V3 ppt2;
-        if (!ppc->Project(pverts[vinds[0]], ppt0) ||
-            !ppc->Project(pverts[vinds[1]], ppt1) ||
-            !ppc->Project(pverts[vinds[2]], ppt2))
-            continue;
-
-        // Compute bounding box aabb of projected vertices
-        AABB bbox(pverts[vinds[0]]);
-        bbox.AddPoint(pverts[vinds[1]]);
-        bbox.AddPoint(pverts[vinds[2]]);
-
-        // Clip aabb with frame
-        //clipAABB();
-
-        // Setup edge equations a, b, c
-        V3 x(pverts[vinds[0]][0], pverts[vinds[1]][0], pverts[vinds[2]][0]);
-        V3 y(pverts[vinds[0]][1], pverts[vinds[1]][1], pverts[vinds[2]][1]);
-        V3 z(pverts[vinds[0]][2], pverts[vinds[1]][2], pverts[vinds[2]][2]);
-
-        V3 a, b, c; // a, b, c for the 3 edge expressions
+        V3 *x = &(xy[0]);
+        V3 *y = &(xy[1]);
 
         // edge that goes through vertices 0 and 1
-        a[0] = y[1]-y[0]; b[0] = -x[1] + x[0]; c[0] = -x[0]*y[1] + y[0]*x[1];
+        (*e1)[0] = (*y)[1]-(*y)[0]; (*e2)[0] = -(*x)[1] + (*x)[0]; (*e3)[0] = -(*x)[0]*(*y)[1] + (*y)[0]*(*x)[1];
         float sidedness; 
-        sidedness = a[0]*x[2] + b[0]*y[2] + c[0];
+        sidedness = (*e1)[0]*(*x)[2] + (*e2)[0]*(*y)[2] + (*e3)[0];
         if (sidedness < 0)
-           a[0] = -a[0]; b[0] = -b[0]; c[0] = -c[0]; 
+           (*e1)[0] = -(*e1)[0]; (*e2)[0] = -(*e2)[0]; (*e3)[0] = -(*e3)[0]; 
 
         // edge that goes through vertices 1 and 2
-        a[1] = y[2]-y[1]; b[1] = -x[2] + x[1]; c[1] = -x[1]*y[2] + y[1]*x[2];
-        sidedness = a[1]*x[2] + b[1]*y[2] + c[1];
+        (*e1)[1] = (*y)[2]-(*y)[1]; (*e2)[1] = -(*x)[2] + (*x)[1]; (*e3)[1] = -(*x)[1]*(*y)[2] + (*y)[1]*(*x)[2];
+        sidedness = (*e1)[1]*(*x)[2] + (*e2)[1]*(*y)[2] + (*e3)[1];
         if (sidedness < 1)
-           a[1] = -a[1]; b[1] = -b[1]; c[1] = -c[1];
+           (*e1)[1] = -(*e1)[1]; (*e2)[1] = -(*e2)[1]; (*e3)[1] = -(*e3)[1];
 
         // edge that goes through vertices 2 and 0
-        a[2] = y[1]-y[2]; b[2] = -x[1] + x[2]; c[2] = -x[2]*y[1] + y[2]*x[1];
-        sidedness = a[2]*x[2] + b[2]*y[2] + c[2];
+        (*e1)[2] = (*y)[1]-(*y)[2]; (*e2)[2] = -(*x)[1] + (*x)[2]; (*e3)[2] = -(*x)[2]*(*y)[1] + (*y)[2]*(*x)[1];
+        sidedness = (*e1)[2]*(*x)[2] + (*e2)[2]*(*y)[2] + (*e3)[2];
         if (sidedness < 2)
-           a[2] = -a[2]; b[2] = -b[2]; c[2] = -c[2];
+           (*e1)[2] = -(*e1)[2]; (*e2)[2] = -(*e2)[2]; (*e3)[2] = -(*e3)[2];
+}
 
-        // Setup screen space linear variation of depth: zABC 
+void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb, 
+        unsigned int color, V3 L, float ka, float se, int renderMode) {
 
-        // Setup screen space linear variation of red: redABC 
+  V3 *pverts = new V3[vertsN];
+  for (int vi = 0; vi < vertsN; vi++) {
+      ppc->Project(verts[vi], pverts[vi]);
+  }
 
-        // Setup screen space linear variation of green: greenABC 
+  for (int tri = 0; tri < trisN; tri++) {
+    int vinds[3];
+    vinds[0] = tris[tri*3+0];
+    vinds[1] = tris[tri*3+1];
+    vinds[2] = tris[tri*3+2];
 
-        // Setup screen space linear variation of blue: blueABC 
+    // Do not render triangle if any of its vertices had an invalid projection
+    //pverts[vi][2] <= 0
 
-        int u, v;
-        int left = (int) (bbox[0][0] + .5), right = (int) (bbox[0][1] - .5); 
-        int top= (int) (bbox[1][0] +.5), bottom = (int) (bbox[1][1] - .5);
+    // Compute bounding box aabb of projected vertices
 
-        for(v = top; v <= bottom; v++) {
-            for (u = left; u <= right; u++) {
+    // Clip aabb with frame
 
-                // Current pixel is p(u, v)
-                unsigned int p = fb->Get(u,v);
+    // Setup edge equations ee0, ee1, ee2
 
-                // Current pixel vector is pv(u+0.5, v+0.5, 1.0)
-                V3 pv(u+0.5f, v+0.5f, 1.0f);
+    // Setup screen space linear variation of depth: zABC 
+    // Setup screen space linear variation of red: redABC 
+    // Setup screen space linear variation of red: greenABC 
+    // Setup screen space linear variation of red: blueABC 
 
-                if (pv*a < 0 || pv*b || pv*c)
-                    continue;
+    // for all rows v of aabb
+    // for all columns u of row v
 
-                /*
-                float currz = zABC * pv
-                if (currz < fb->zb[p])
-                    continue;
-                fb->zb[p] = currz;
-                */
+    // Current pixel is p(u, v)
+    // Curretn pixel vector is pv(u+0.5, v+0.5, 1.0)
 
-                //rendering mode is vertex color interpolation
-                if (renderMode == 0) {
-                      //ssiRed = redABC * pv
-                      //ssiGreen = greenABC * pv
-                      //ssiBlue = blueABC * pv
-                      //FB[p] = (ssiRed, ssiGreen, ssiB)
-                }
+    // Check whether current pixel is inside triangle
+    // if the pixel is on wrong side of any of the triangle edges
+    // if (pv*ee0 < 0 || pv*ee1 || pv*ee2)
+    // continue
 
-                //rendering mode is per pixel diffuse lighting
-                if (renderMode == 1) {
-                //      n.x = nxABC * pv
-                //      n.y = nyABC * pv
-                //      n.z = nzABC * pv
-                //      normalize n
-                //      n = n.normalize();
-                //      surface point at current pixel P
-                //      P = ppc->Unproject(u+0.5, v+0.5, currz)
-                //      lv = (L-P).normalized()
-                //      kd = lv * n; kd = (kd < 0) ? 0 : kd;
-                //      FB[p] = color * (ka + (1-ka)*kd);
-                }
-            }
-        }
-    }
+    // Check whether triangle is closer than what was previously
+    // seen at this pixel
+    // currz = zABC * pv
+    // if currz < ZB[p]
+    // continue
+    // ZB[p] = currz
 
-    delete []pverts;
+    // pixel is insisde triangle and triangle is visible at pixel
+    // compute color of pixel based on current triangle
+
+    // if rendering mode is vertex color interpolation
+    //      ssiRed = redABC * pv
+    //      ssiGreen = greenABC * pv
+    //      ssiBlue = blueABC * pv
+    //      FB[p] = (ssiRed, ssiGreen, ssiB)
+
+    // if rendering mode is per pixel diffuse lighting
+    //      n.x = nxABC * pv
+    //      n.y = nyABC * pv
+    //      n.z = nzABC * pv
+    //      normalize n
+    //      surface point at current pixel P
+    //      P = ppc->Unproject(u+0.5, v+0.5, currz)
+    //      lv = (L-P).normalized()
+    //      kd = lv * n; kd = (kd < 0) ? 0 : kd;
+    //      FB[p] = color * (ka + (1-ka)*kd);
+  }
+
+  delete []pverts;
+
+
 }
 

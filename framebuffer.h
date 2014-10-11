@@ -25,8 +25,7 @@ public:
   void SetSafe(int u, int v, unsigned int color);
   void SetChecker(int csize, unsigned int color0, unsigned int color1);
   void DrawPoint(int u, int v, int psize, unsigned int color);
-  void DrawSegment(float u0f, float v0f, float u1f, float v1f, 
-                   unsigned int color);
+  void DrawSegment(V3 pp0, V3 pp1, unsigned int color);
   void DrawCircle(float cx, float cy, float r, unsigned int color);
   void DrawCircleWithThickness(float cx, float cy, float r, float thickness, unsigned int color);
   void FillCircle(float cx, float cy, float r, unsigned int color);

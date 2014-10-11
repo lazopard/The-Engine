@@ -6,6 +6,7 @@
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Value_Slider.H>
+#include <FL/Fl_Value_Input.H>
 
 class GUI {
 public:
@@ -70,6 +71,24 @@ private:
   inline void cb_StepSlider_i(Fl_Value_Slider*, void*);
   static void cb_StepSlider(Fl_Value_Slider*, void*);
 public:
+  Fl_Value_Input *AmbientFactor;
+private:
+  inline void cb_AmbientFactor_i(Fl_Value_Input*, void*);
+  static void cb_AmbientFactor(Fl_Value_Input*, void*);
+public:
+  Fl_Value_Input *SpecularExponent;
+private:
+  inline void cb_SpecularExponent_i(Fl_Value_Input*, void*);
+  static void cb_SpecularExponent(Fl_Value_Input*, void*);
+  inline void cb_L1_i(Fl_Button*, void*);
+  static void cb_L1(Fl_Button*, void*);
+  inline void cb_R1_i(Fl_Button*, void*);
+  static void cb_R1(Fl_Button*, void*);
+  inline void cb_U1_i(Fl_Button*, void*);
+  static void cb_U1(Fl_Button*, void*);
+  inline void cb_D1_i(Fl_Button*, void*);
+  static void cb_D1(Fl_Button*, void*);
+public:
   void show();
   void DBG_cb();
   void load_cb();
@@ -95,5 +114,11 @@ public:
   void zoom_in_cb();
   void zoom_out_cb();
   void step_cb();
+  void ambient_cb();
+  void specular_cb();
+  void upl_cb();
+  void downl_cb();
+  void leftl_cb();
+  void rightl_cb();
 };
 #endif

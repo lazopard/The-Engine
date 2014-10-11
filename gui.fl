@@ -10,7 +10,7 @@ class GUI {open
   } {
     Fl_Window uiw {
       label GUI open selected
-      xywh {589 92 615 262} type Double hide
+      xywh {454 101 617 295} type Double visible
     } {
       Fl_Button {} {
         label Play
@@ -20,12 +20,12 @@ class GUI {open
       Fl_Value_Slider BrightnessSlider {
         label {Brighness %}
         callback {brightness_cb()}
-        xywh {30 0 35 170} maximum 100 step 0.1 value 50 textsize 14
+        xywh {25 0 35 170} maximum 100 step 0.1 value 50 textsize 14
       }
       Fl_Button {} {
         label {Edge Detection}
         callback {detect_edges_cb()}
-        xywh {370 0 95 25}
+        xywh {5 250 115 25}
       }
       Fl_Button {} {
         label {Load image}
@@ -40,37 +40,37 @@ class GUI {open
       Fl_Button {} {
         label L
         callback {left_cb()}
-        xywh {340 50 20 40}
+        xywh {235 45 20 40}
       }
       Fl_Button {} {
         label R
         callback {right_cb()}
-        xywh {385 50 20 40}
+        xywh {280 45 20 40}
       }
       Fl_Button {} {
         label U
         callback {up_cb()}
-        xywh {360 30 25 20}
+        xywh {255 25 25 20}
       }
       Fl_Button {} {
         label D
         callback {down_cb()}
-        xywh {360 90 25 25}
+        xywh {255 85 25 25}
       }
       Fl_Button {} {
         label TiltU
         callback {tiltU_cb()}
-        xywh {420 30 40 20}
+        xywh {315 25 40 20}
       }
       Fl_Button {} {
         label PanL
         callback {panL_cb()}
-        xywh {420 50 40 20}
+        xywh {315 45 40 20}
       }
       Fl_Button {} {
         label RollL
         callback {rollL_cb()}
-        xywh {420 70 40 20}
+        xywh {315 65 40 20}
       }
       Fl_Button {} {
         label {Load Geometry}
@@ -80,32 +80,32 @@ class GUI {open
       Fl_Value_Slider ContrastSlider {
         label Contrast
         callback {contrast_cb()}
-        xywh {105 0 35 170} minimum 1 maximum 3 value 1 textsize 14
+        xywh {95 0 35 170} minimum 1 maximum 3 value 1 textsize 14
       }
       Fl_Button {} {
         label F
         callback {f_cb()}
-        xywh {360 50 25 20}
+        xywh {255 45 25 20}
       }
       Fl_Button {} {
         label B
         callback {b_cb()}
-        xywh {360 70 25 20}
+        xywh {255 65 25 20}
       }
       Fl_Button {} {
         label PanR
         callback {panR_cb()}
-        xywh {460 50 45 20}
+        xywh {355 45 45 20}
       }
       Fl_Button {} {
         label RollR
         callback {rollR_cb()}
-        xywh {460 70 45 20}
+        xywh {355 65 45 20}
       }
       Fl_Button {} {
         label TiltD
         callback {tiltD_cb()}
-        xywh {460 30 45 20}
+        xywh {355 25 45 20}
       }
       Fl_Button {} {
         label {Load Camera}
@@ -120,17 +120,67 @@ class GUI {open
       Fl_Button {} {
         label {Z In}
         callback {zoom_in_cb()}
-        xywh {420 90 40 20}
+        xywh {315 85 40 20}
       }
       Fl_Button {} {
         label {Z Out}
         callback {zoom_out_cb()}
-        xywh {460 90 45 20}
+        xywh {355 85 45 20}
       }
       Fl_Value_Slider StepSlider {
         label {Move Step}
         callback {step_cb()}
         xywh {190 0 35 170} maximum 100 step 0.1 value 10 textsize 14
+      }
+      Fl_Value_Input AmbientFactor {
+        label {Ambient Factor}
+        callback {ambient_cb()}
+        xywh {110 197 25 19} maximum 10 step 0.1
+      }
+      Fl_Value_Input SpecularExponent {
+        label {Specular Exponent}
+        callback {specular_cb()}
+        xywh {130 227 25 18} minimum 1 maximum 10 step 0.1
+      }
+      Fl_Button {} {
+        label Camera
+        xywh {245 0 150 20} box FLAT_BOX labeltype ENGRAVED_LABEL
+      }
+      Fl_Button {} {
+        label {Light Source}
+        xywh {245 125 150 20} box FLAT_BOX labeltype ENGRAVED_LABEL
+      }
+      Fl_Button {} {
+        label L
+        callback {leftl_cb()}
+        xywh {285 155 20 30}
+      }
+      Fl_Button {} {
+        label R
+        callback {rightl_cb()}
+        xywh {330 155 20 30}
+      }
+      Fl_Button {} {
+        label U
+        callback {upl_cb()}
+        xywh {305 150 25 20}
+      }
+      Fl_Button {} {
+        label D
+        callback {downl_cb()}
+        xywh {305 170 25 25}
+      }
+      Fl_Button {} {
+        label SM1
+        xywh {480 200 45 25}
+      }
+      Fl_Button {} {
+        label SM2
+        xywh {525 200 45 25}
+      }
+      Fl_Button {} {
+        label SM3
+        xywh {570 200 45 25}
       }
     }
   }
@@ -140,8 +190,7 @@ class GUI {open
   Function {show()} {} {
     code {uiw->show();} {}
   }
-  Function {DBG_cb()} {open
-  } {
+  Function {DBG_cb()} {} {
     code {scene->Play();} {}
   }
   Function {load_cb()} {} {
@@ -212,5 +261,23 @@ class GUI {open
   }
   Function {step_cb()} {} {
     code {scene->adjustStep();} {}
+  }
+  Function {ambient_cb()} {} {
+    code {scene->adjustAmbient();} {}
+  }
+  Function {specular_cb()} {} {
+    code {scene->adjustSpecular();} {}
+  }
+  Function {upl_cb()} {} {
+    code {scene->lightSourceUp();} {}
+  }
+  Function {downl_cb()} {} {
+    code {scene->lightSourceDown();} {}
+  }
+  Function {leftl_cb()} {} {
+    code {scene->lightSourceLeft();} {}
+  }
+  Function {rightl_cb()} {} {
+    code {scene->lightSourceRight();} {}
   }
 } 

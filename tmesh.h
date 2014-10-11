@@ -7,11 +7,17 @@
 class TMesh {
     public:
         bool enabled;
-        V3 *verts, *normals, *cols;
+
+        V3 *verts; //vertices
+        V3 *normals; 
+        V3 *cols; //colors
+
         int vertsN;
         unsigned int *tris;
         int trisN;
+
         AABB *aabb;
+
         TMesh();
         TMesh(V3 center, V3 dims, unsigned int color);
         void LoadBin(const char *fname);
@@ -25,7 +31,7 @@ class TMesh {
         void ScaleToNewDiagonal(float newDiagonal);
         void Scale(float scf);
         void RenderFilled(PPC *ppc, FrameBuffer *fb, 
-        unsigned int color, V3 L, float ka, int renderMode);
+        unsigned int color, V3 L, float ka, float se, int renderMode);
 
 };
 
