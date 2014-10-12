@@ -6,11 +6,10 @@ class GUI {open
 } {
   decl {\#include "scene.h"} {private local
   }
-  Function {GUI()} {open
-  } {
+  Function {GUI()} {} {
     Fl_Window uiw {
       label GUI open selected
-      xywh {454 101 617 295} type Double visible
+      xywh {454 101 617 288} type Double visible
     } {
       Fl_Button {} {
         label Play
@@ -172,14 +171,17 @@ class GUI {open
       }
       Fl_Button {} {
         label SM1
+        callback {sm1_cb()}
         xywh {480 200 45 25}
       }
       Fl_Button {} {
         label SM2
+        callback {sm2_cb()}
         xywh {525 200 45 25}
       }
       Fl_Button {} {
         label SM3
+        callback {sm3_cb()}
         xywh {570 200 45 25}
       }
     }
@@ -279,5 +281,14 @@ class GUI {open
   }
   Function {rightl_cb()} {} {
     code {scene->lightSourceRight();} {}
+  }
+  Function {sm1_cb()} {} {
+    code {scene->sm1();} {}
+  }
+  Function {sm2_cb()} {} {
+    code {scene->sm2();} {}
+  }
+  Function {sm3_cb()} {} {
+    code {scene->sm3();} {}
   }
 } 

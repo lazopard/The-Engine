@@ -88,6 +88,12 @@ private:
   static void cb_U1(Fl_Button*, void*);
   inline void cb_D1_i(Fl_Button*, void*);
   static void cb_D1(Fl_Button*, void*);
+  inline void cb_SM1_i(Fl_Button*, void*);
+  static void cb_SM1(Fl_Button*, void*);
+  inline void cb_SM2_i(Fl_Button*, void*);
+  static void cb_SM2(Fl_Button*, void*);
+  inline void cb_SM3_i(Fl_Button*, void*);
+  static void cb_SM3(Fl_Button*, void*);
 public:
   void show();
   void DBG_cb();
@@ -120,5 +126,8 @@ public:
   void downl_cb();
   void leftl_cb();
   void rightl_cb();
+  void sm1_cb();
+  void sm2_cb();
+  void sm3_cb();
 };
 #endif

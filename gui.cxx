@@ -211,10 +211,31 @@ void GUI::cb_D1_i(Fl_Button*, void*) {
 void GUI::cb_D1(Fl_Button* o, void* v) {
   ((GUI*)(o->parent()->user_data()))->cb_D1_i(o,v);
 }
+
+void GUI::cb_SM1_i(Fl_Button*, void*) {
+  sm1_cb();
+}
+void GUI::cb_SM1(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_SM1_i(o,v);
+}
+
+void GUI::cb_SM2_i(Fl_Button*, void*) {
+  sm2_cb();
+}
+void GUI::cb_SM2(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_SM2_i(o,v);
+}
+
+void GUI::cb_SM3_i(Fl_Button*, void*) {
+  sm3_cb();
+}
+void GUI::cb_SM3(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_SM3_i(o,v);
+}
 #include "scene.h"
 
 GUI::GUI() {
-  { uiw = new Fl_Double_Window(617, 295, "GUI");
+  { uiw = new Fl_Double_Window(617, 288, "GUI");
     uiw->user_data((void*)(this));
     { Fl_Button* o = new Fl_Button(515, 0, 100, 25, "Play");
       o->selection_color(FL_DARK_RED);
@@ -332,11 +353,14 @@ GUI::GUI() {
     { Fl_Button* o = new Fl_Button(305, 170, 25, 25, "D");
       o->callback((Fl_Callback*)cb_D1);
     } // Fl_Button* o
-    { new Fl_Button(480, 200, 45, 25, "SM1");
+    { Fl_Button* o = new Fl_Button(480, 200, 45, 25, "SM1");
+      o->callback((Fl_Callback*)cb_SM1);
     } // Fl_Button* o
-    { new Fl_Button(525, 200, 45, 25, "SM2");
+    { Fl_Button* o = new Fl_Button(525, 200, 45, 25, "SM2");
+      o->callback((Fl_Callback*)cb_SM2);
     } // Fl_Button* o
-    { new Fl_Button(570, 200, 45, 25, "SM3");
+    { Fl_Button* o = new Fl_Button(570, 200, 45, 25, "SM3");
+      o->callback((Fl_Callback*)cb_SM3);
     } // Fl_Button* o
     uiw->end();
   } // Fl_Double_Window* uiw
@@ -469,4 +493,16 @@ void GUI::leftl_cb() {
 
 void GUI::rightl_cb() {
   scene->lightSourceRight();
+}
+
+void GUI::sm1_cb() {
+  scene->sm1();
+}
+
+void GUI::sm2_cb() {
+  scene->sm2();
+}
+
+void GUI::sm3_cb() {
+  scene->sm3();
 }

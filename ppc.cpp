@@ -97,8 +97,8 @@ bool PPC::Project(V3 P, V3 &PP) {
     if (q[2] <= 0.0f)
         return false;
 
-    PP[0] = q[0] / q[2];
-    PP[1] = q[1] / q[2];
+    PP[0] = q[0] / q[2]; //u 
+    PP[1] = q[1] / q[2]; //v
     PP[2] = 1.0f / q[2];
     return true;
 }
