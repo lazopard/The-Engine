@@ -91,14 +91,19 @@ void FrameBuffer::DrawSegment(V3 pp0, V3 pp1, unsigned int color) {
 
   V3 startingPoint(pp0);
   V3 endingPoint(pp1);
-  V3 currentPoint = startingPoint;
   int segsN;
   if (stepsN == 1)
     segsN = 1;
   else
     segsN = stepsN-1;
   V3 segmentStep = (endingPoint - startingPoint) / (float) segsN;
-  for (int i = 0; i < stepsN; i++) {
+  int i;
+  V3 currentPoint;
+  for (i = 0,
+       currentPoint = startingPoint; 
+       i < stepsN; 
+       i++,
+       currentPoint = currentPoint + segmentStep) {
     int u = (int) currentPoint[0];
     int v = (int) currentPoint[1];
     if (IsOutsideFrame(u, v))
@@ -111,6 +116,50 @@ void FrameBuffer::DrawSegment(V3 pp0, V3 pp1, unsigned int color) {
   }
 
 }
+
+/*
+void FrameBuffer::DrawSegment(V3 pp0, V3 pp1, V3 c0, V3 c1) {
+
+  float u0f = pp0[0];
+  float u1f = pp1[0];
+  float v0f = pp0[1];
+  float v1f = pp1[1];
+
+  float du = fabsf(u1f-u0f);
+  float dv = fabsf(v1f-v0f);
+  int stepsN = (du < dv) ? 1 + (int) dv : 1 + (int) du;
+
+  V3 startingPoint(pp0);
+  V3 endingPoint(pp1);
+  V3 currentPoint;
+  int segsN;
+  if (stepsN == 1)
+    segsN = 1;
+  else
+    segsN = stepsN-1;
+  V3 segmentStep = (endingPoint - startingPoint) / (float) segsN;
+  V3 colorStep = (c1-c0) / (float) segsN;
+  int i;
+  V3 cc;
+  for (i = 0,
+       currentPoint = startingPoint,
+       cc = c0; 
+       i < stepsN; 
+       i++, 
+       currentPoint = currentPoint + segmentStep,
+       cc = cc + colorStep) {
+    int u = (int) currentPoint[0];
+    int v = (int) currentPoint[1];
+    if (IsOutsideFrame(u, v))
+      continue;
+    if (IsFarther(u, v, currentPoint[2]))
+      continue;
+    SetZ(u, v, currentPoint[2]);
+    Set(u, v, cc.GetColor());
+  }
+
+}
+*/
 
 //8-way symmetry circle
 void FrameBuffer::DrawCircle(float cx, float cy, float r, unsigned int color) {

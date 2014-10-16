@@ -77,8 +77,9 @@ void Scene::Render() {
     for (int tmi = 0; tmi < tmeshesN; tmi++) {
         if (!tmeshes[tmi]->enabled)
             continue;
-        tmeshes[tmi]->RenderFilled(ppc, fb, 0xFF000000, v, ka, se, sm);
+        tmeshes[tmi]->RenderFilled(ppc, fb, 00000000, v, ka, se, sm);
         //tmeshes[tmi]->RenderPoints(ppc, fb, 3);
+        //tmeshes[tmi]->RenderWireframe(ppc,fb, 0x00000000);
     }
     fb->redraw();
 }

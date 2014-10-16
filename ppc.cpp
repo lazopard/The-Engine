@@ -103,6 +103,15 @@ bool PPC::Project(V3 P, V3 &PP) {
     return true;
 }
 
+
+V3 PPC::UnProject(V3 PP) {
+
+  V3 ret;
+  ret = C + (a*PP[0] + b*PP[1] + c)/PP[2];
+  return ret;
+
+}
+
 void PPC::PositionAndOrient(V3 newC, V3 lap, V3 vpv) {
 
     V3 newVD = (lap - newC).normalize();
@@ -197,9 +206,15 @@ void PPC::RenderWireframe(PPC *ppc, FrameBuffer *fb, float f,
   baseCorners[1] = GetPointOnFocalPlane(0.0f, (float)h, f);
   baseCorners[2] = GetPointOnFocalPlane((float)w, (float)h, f);
   baseCorners[3] = GetPointOnFocalPlane((float)w, 0.0f, f);
+
+  V3 c0;
+  c0.setFromColor(color);
+
   for (int si = 0; si < 4; si++) {
     fb->Draw3DSegment(C, baseCorners[si], ppc, color);
     fb->Draw3DSegment(baseCorners[si], baseCorners[(si+1)%4], ppc, color);
+    //fb->Draw3DSegment(C, baseCorners[si], ppc, c0, c0);
+    //fb->Draw3DSegment(baseCorners[si], baseCorners[(si+1)%4], ppc, c0, c0);
   }
 
 }

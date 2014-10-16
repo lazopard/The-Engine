@@ -22,6 +22,7 @@ class PPC {
         V3 GetPointOnImagePlane(float uf, float vf);
         V3 GetPointOnFocalPlane(float uf, float vf, float f);
         bool Project(V3 P, V3 &PP);
+        V3 UnProject(V3 PP);
         void PositionAndOrient(V3 newC, V3 lap, V3 vpv);
         void Zoom(float step);
         void TranslateX(float step);

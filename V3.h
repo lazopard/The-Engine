@@ -37,7 +37,7 @@ public:
   V3 operator%(V3); // Cross product
 
   void setFromColor(unsigned int color);
-  unsigned getColor();
+  unsigned int getColor();
 
   //Rotation
   /* Rotate point about arbitrary axis. Parameters are 2 points to define axis and a 

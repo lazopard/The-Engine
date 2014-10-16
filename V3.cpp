@@ -184,7 +184,7 @@ void V3::setFromColor(unsigned int color) {
 
 }
 
-unsigned V3::getColor() {
+unsigned int V3::getColor() {
 
   V3 &v = *this;
   int red = (int) (v[0]*255.0f+0.5f);

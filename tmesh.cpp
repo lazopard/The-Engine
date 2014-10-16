@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <cmath>
+#include <cfloat>
 
 TMesh::TMesh() {
     verts = 0;
@@ -99,6 +100,8 @@ TMesh::TMesh(V3 center, V3 dims, unsigned int color) {
 void TMesh::RenderPoints(PPC *ppc, FrameBuffer *fb, int psize) {
 
     for (int vi = 0; vi < vertsN; vi++) {
+        if (verts[vi][0] == FLT_MAX)
+            continue;
         fb->Draw3DPoint(verts[vi], ppc, psize, cols[vi]);
     }
 
@@ -120,10 +123,40 @@ void TMesh::RenderWireframe(PPC *ppc, FrameBuffer *fb, unsigned int color) {
 
 }
 
-V3 screenSpaceInterpolate(V3 v1, V3 v2, V3 v3, V3 r) {
-    return V3(0,0,0);
-}
+/*
+void TMesh::RenderWireframe(PPC *ppc, FrameBuffer *fb, unsigned int color) {
 
+
+  for (int tri = 0; tri < trisN; tri++) {
+    int vinds[3];
+    vinds[0] = tris[tri*3+0];
+    vinds[1] = tris[tri*3+1];
+    vinds[2] = tris[tri*3+2];
+    for (int vi = 0; vi < 3; vi++) {
+      V3 col0, col1;
+      if (cols) {
+        col0 = cols[vinds[vi]];
+        col1 = cols[vinds[(vi+1)%3]];
+      }
+      else {
+        col0.SetFromColor(color);
+        col1.SetFromColor(color);
+      }
+      fb->Draw3DSegment(verts[vinds[vi]], verts[vinds[(vi+1)%3]], ppc,
+        col0, col1);
+    }
+  }
+
+}
+*/
+
+V3 screenSpaceInterpolate(V3 v1, V3 v2, V3 v3, V3 r) {
+    M33 m;
+    m.setColumn(0, v1);
+    m.setColumn(1, v2);
+    m.setColumn(2, V3(1));
+    return m.inverse() * r;
+}
 
 void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb, 
         unsigned int color, V3 L, float ka, float se, int renderMode) {
@@ -186,22 +219,32 @@ void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb,
         }
 
         //Setup linear variation of depth
-        V3 zr;
+        V3 zr(pverts[vinds[0]][2], pverts[vinds[1]][2], 
+              pverts[vinds[2]][2]);
         V3 zABC = screenSpaceInterpolate(pverts[vinds[0]],
                        pverts[vinds[1]], pverts[vinds[2]], zr);
 
+        //Extract rgb of verts
+        V3 rr, gr, br;
+        rr[0] = ((cols[vinds[0]]).getColor() >> 16) & 0xff;
+        gr[0] = ((cols[vinds[0]]).getColor() >> 8) & 0xff;
+        br[0] = (cols[vinds[0]]).getColor() & 0xff;
+        rr[1] = ((cols[vinds[1]]).getColor() >> 16) & 0xff;
+        gr[1] = ((cols[vinds[1]]).getColor() >> 8) & 0xff;
+        br[1] = (cols[vinds[1]]).getColor() & 0xff;
+        rr[2] = ((cols[vinds[2]]).getColor() >> 16) & 0xff;
+        gr[2] = ((cols[vinds[2]]).getColor() >> 8) & 0xff;
+        br[2] = (cols[vinds[2]]).getColor() & 0xff;
+
         //Setup linear of red
-        V3 rr;
         V3 redABC = screenSpaceInterpolate(pverts[vinds[0]],
                        pverts[vinds[1]], pverts[vinds[2]], rr);
             
         //Setup linear of green 
-        V3 gr;
         V3 greenABC = screenSpaceInterpolate(pverts[vinds[0]],
                        pverts[vinds[1]], pverts[vinds[2]], gr);
 
         //Setup linear of blue 
-        V3 br;
         V3 blueABC = screenSpaceInterpolate(pverts[vinds[0]],
                        pverts[vinds[1]], pverts[vinds[2]], br);
 
@@ -214,29 +257,36 @@ void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb,
         V3 currEELS; // edge expression values for line starts
         V3 currEE; //  within line
         V3 pv; //pixel vector
-        for ( v = top; v <= bottom; v++) 
-            for ( u = left; u <= right; u++) {
+        for(v = top; v <= bottom; v++) 
+            for(u = left; u <= right; u++) {
                 pv[0] = u + 0.5f;
                 pv[1] = v + 0.5f;
                 pv[2] = 1.0f;
 
                 // Check if pixel is inside triangle
-                if (pv*a < 0 || pv*b || pv*c) 
-                    continue;
+                //if (pv*a < 0 || pv*b < 0 || pv*c < 0) 
+                    //continue;
 
                 // Check if triangle is closer than previously seen
-
-                // currz = zABC * pv
-                // if currz < ZB[p]
-                  // continue
-                // ZB[p] = currz
+                float currz = zABC * pv;
+                if (fb->IsFarther(u, v, currz))
+                    continue;
+                fb->SetZ(u, v, currz);
 
                 // From model file
                 if (renderMode == 0) {
                 }
 
-                // From lightning expression per vertex
+                //Gourad shading
                 else if (renderMode == 1) {
+
+                    unsigned int ssiRed = redABC * pv;
+                    unsigned int ssiGreen = greenABC * pv;
+                    unsigned int ssiBlue = blueABC * pv;
+                    unsigned int rgb = ssiRed << 16 |
+                                       ssiGreen << 8 | 
+                                       ssiBlue;
+                    fb->Set(u, v, rgb);
                 }
 
                 //From lightning expression per pixel
@@ -367,5 +417,30 @@ void TMesh::Scale(float scf) {
     }
 
     SetAABB();
+}
+
+void TMesh::SetFromFB(FrameBuffer *fb, PPC *ppc) {
+
+  vertsN = fb->w*fb->h;
+  verts = new V3[vertsN];
+  cols = new V3[vertsN];
+
+  float z0 = ppc->GetF() / 100.0f;
+
+  for (int v = 0; v < fb->h; v++) {
+    for (int u = 0; u < fb->w; u++) {
+      int uv = (fb->h-1-v)*fb->w+u;
+      if (fb->zb[uv] == 0.0f) {
+        verts[uv] = V3(FLT_MAX, FLT_MAX, FLT_MAX);
+        cols[uv].setFromColor(fb->Get(u, v));
+        continue;
+      }
+//      V3 pp((float)u+0.5f, (float)v+0.5f, fb->zb[uv]);
+      V3 pp((float)u+0.5f, (float)v+0.5f, z0);
+      verts[uv] = ppc->UnProject(pp);
+      cols[uv].setFromColor(fb->Get(u, v));
+    }
+  }
+
 }
 

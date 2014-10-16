@@ -32,6 +32,7 @@ class TMesh {
         void Scale(float scf);
         void RenderFilled(PPC *ppc, FrameBuffer *fb, 
         unsigned int color, V3 L, float ka, float se, int renderMode);
+        void SetFromFB(FrameBuffer *fb, PPC *ppc);
 
 };
 
