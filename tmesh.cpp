@@ -299,6 +299,9 @@ void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb,
 
 }
 
+void TMesh::RenderTM(PPC *ppc, FrameBuffer *fb, FrameBuffer *texture, int tm_mode) {
+}
+
 void TMesh::LoadBin(const char *fname) {
 
     ifstream ifs(fname, ios::binary);

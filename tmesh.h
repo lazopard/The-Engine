@@ -23,6 +23,7 @@ class TMesh {
         void LoadBin(const char *fname);
         void RenderPoints(PPC *ppc, FrameBuffer *fb, int psize);
         void RenderWireframe(PPC *ppc, FrameBuffer *fb, unsigned int color);
+        void RenderTM(PPC *ppc, FrameBuffer *fb, FrameBuffer *texture, int tm_mode); 
         void SetAABB();
         void ClipAABB();
         void Translate(V3 tv);
