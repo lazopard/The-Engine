@@ -55,9 +55,6 @@ public:
   float length(); // length
   float lengthSquared();
   V3 normalize(); // normalization
-  
-  // Destructor
-  ~V3() { };
 };
 
 class AABB {
@@ -65,6 +62,9 @@ class AABB {
         V3 corners[2];
         AABB(V3 firstPoint);
         void AddPoint(V3 pt);
+        float length();
+        float height();
+        float width();
         V3& operator[](unsigned);
 };
 

@@ -77,17 +77,22 @@ void Scene::Render() {
     for (int tmi = 0; tmi < tmeshesN; tmi++) {
         if (!tmeshes[tmi]->enabled)
             continue;
-        tmeshes[tmi]->RenderFilled(ppc, fb, 00000000, v, ka, se, sm);
         //tmeshes[tmi]->RenderPoints(ppc, fb, 3);
         //tmeshes[tmi]->RenderWireframe(ppc,fb, 0x00000000);
+        tmeshes[tmi]->RenderFilled(ppc, fb, 00000000, v, ka, se, sm);
     }
     fb->redraw();
 }
 
 //play
 void Scene::Play() {
-    PlayInterpolationAnimation();
+    //PlayInterpolationAnimation();
 }
+
+/*
+void Scene::DebugInterpolation() {
+}
+*/
 
 void Scene::PlayInterpolationAnimation() {
 
@@ -414,20 +419,28 @@ void Scene::loadGeometry() {
     tmeshes[tmeshesN]->LoadBin(chooser.value());
 
     V3 newCenter;
-    if (tmeshesN < 1) {
-        newCenter = ppc->C - V3(0,0,100);
+
+    //first mesh
+    if (tmeshesN == 0) {
+        newCenter = ppc->C;
         tmeshes[tmeshesN]->Position(newCenter);
+        tmeshes[tmeshesN]->SetAABB();
+        ppc->TranslateZ(-2 * tmeshes[tmeshesN]->aabb->width());
         tmeshesN++;
         Render();
         return;
     }
 
-    newCenter = tmeshes[tmeshesN]->GetCenter() + V3(100, 0, 0);
-    ZoomOut();
-    ZoomOut();
-    tmeshes[tmeshesN]->Position(newCenter);
-    tmeshesN++;
-    Render();
+    else {
+
+        newCenter = tmeshes[tmeshesN]->GetCenter() + V3(100, 0, 0);
+        ZoomOut();
+        ZoomOut();
+        tmeshes[tmeshesN]->Position(newCenter);
+        tmeshesN++;
+        Render();
+
+    }
 }
 
 void Scene::loadImage() {

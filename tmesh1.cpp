@@ -150,7 +150,7 @@ void TMesh::RenderWireframe(PPC *ppc, FrameBuffer *fb, unsigned int color) {
 }
 */
 
-inline V3 screenSpaceInterpolate(V3 v1, V3 v2, V3 v3, V3 r) {
+V3 screenSpaceInterpolate(V3 v1, V3 v2, V3 v3, V3 r) {
     M33 m;
     m.setColumn(0, v1);
     m.setColumn(1, v2);
@@ -158,40 +158,15 @@ inline V3 screenSpaceInterpolate(V3 v1, V3 v2, V3 v3, V3 r) {
     return m.inverse() * r;
 }
 
-#define EPSILON 0.000001
-
-inline bool areEqual(float a, float b) {
-    return fabs(a - b) < EPSILON;
-}
-
-bool insideTriangle(V3 pv, V3 e1, V3 e2, V3 e3) {
-    bool inside1, inside2, inside3;
-    float ee1, ee2, ee3;
-    ee1 = e1 * pv;
-    ee2 = e2 * pv;
-    ee3 = e3 * pv;
-
-
-    //To fix shared edges
-    bool t = (areEqual(e1[0], 0)) ?  e1[0] > 0 : e1[2] > 0;
-    inside1 = ee1 > 0 || (areEqual(ee1, 0) && t);
-
-    t = (areEqual(e2[0], 0)) ? e2[0] > 0 : e2[2] > 0;
-    inside2 = ee2 > 0 || (areEqual(ee2, 0) && t);
-
-    t = (areEqual(e3[0], 0)) ? e3[0] > 0 : e3[2] > 0;
-    inside3 = ee3 > 0 || (areEqual(ee3, 0) && t);
-
-    return inside1 && inside2 && inside3;
-}
-
 void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb, 
         unsigned int color, V3 L, float ka, float se, int renderMode) {
 
     V3 *pverts = new V3[vertsN];
+    /*
     for (int vi = 0; vi < vertsN; vi++) {
         ppc->Project(verts[vi], pverts[vi]);
     }
+    */
 
     for (int tri = 0; tri < trisN; tri++) {
         int vinds[3];
@@ -200,24 +175,50 @@ void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb,
         vinds[2] = tris[tri*3+2];
 
         // Do not render triangle if any of its vertices had an invalid projection
-        /*
         if (!ppc->Project(verts[vinds[0]], pverts[vinds[0]]) ||
             !ppc->Project(verts[vinds[1]], pverts[vinds[1]]) ||
             !ppc->Project(verts[vinds[2]], pverts[vinds[2]])) {
             continue;
         }
-        */
 
         //Compute bounding box of projected vertices
         AABB bbox(pverts[vinds[0]]);
         bbox.AddPoint(pverts[vinds[1]]);
         bbox.AddPoint(pverts[vinds[2]]);
 
-        //Setup edge normals
-        V3 e1, e2, e3;
-        e1 = pverts[vinds[0]] % pverts[vinds[1]];
-        e2 = pverts[vinds[1]] % pverts[vinds[2]];
-        e3 = pverts[vinds[2]] % pverts[vinds[0]];
+        //Setup edge equations from pverts[vinds]
+        V3 a, b, c;
+        float sidedness;
+        /*
+        {
+            //Edge 0-1
+            a[0] = pverts[vinds[1]][1]-pverts[vinds[0]][1]; 
+            b[0] = -pverts[vinds[1]][0] + pverts[vinds[0]][0]; 
+            c[0] = -pverts[vinds[0]][0]*pverts[vinds[1]][1] + pverts[vinds[0]][1]*pverts[vinds[1]][0];
+            sidedness = a[0]*pverts[vinds[2]][0] + b[0]*pverts[vinds[2]][1] + c[0];
+            if (sidedness < 0) {
+                a[0] = -a[0]; b[0] = -b[0]; c[0] = -c[0];
+            }
+
+            //Edge 1-2
+            a[1] = pverts[vinds[2]][1]-pverts[vinds[1]][1]; 
+            b[1] = -pverts[vinds[2]][0] + pverts[vinds[1]][0]; 
+            c[1] = -pverts[vinds[1]][0]*pverts[vinds[2]][1] + pverts[vinds[1]][1]*pverts[vinds[2]][0];
+            sidedness = a[1]*pverts[vinds[0]][0] + b[1]*pverts[vinds[0]][1] + c[1];
+            if (sidedness < 0) {
+                a[1] = -a[1]; b[1] = -b[1]; c[1] = -c[1];
+            }
+
+            //Edge 2-0
+            a[2] = pverts[vinds[0]][1]-pverts[vinds[2]][1]; 
+            b[2] = -pverts[vinds[0]][0] + pverts[vinds[2]][0]; 
+            c[2] = -pverts[vinds[2]][0]*pverts[vinds[0]][1] + pverts[vinds[2]][1]*pverts[vinds[0]][0];
+            sidedness = a[2]*pverts[vinds[1]][0] + b[2]*pverts[vinds[1]][1] + c[2];
+            if (sidedness < 0) {
+                a[2] = -a[2]; b[2] = -b[2]; c[2] = -c[2];
+            }
+        }
+        */
 
         //Setup linear variation of depth
         V3 zr(pverts[vinds[0]][2], pverts[vinds[1]][2], 
@@ -258,11 +259,15 @@ void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb,
         V3 currEELS; // edge expression values for line starts
         V3 currEE; //  within line
         V3 pv; //pixel vector
-        for(v = top; v <= bottom; v++) { 
+        for(v = top; v <= bottom; v++) 
             for(u = left; u <= right; u++) {
                 pv[0] = u + 0.5f;
                 pv[1] = v + 0.5f;
                 pv[2] = 1.0f;
+
+                // Check if pixel is inside triangle
+                //if (pv*a < 0 || pv*b < 0 || pv*c < 0) 
+                    //continue;
 
                 // Check if triangle is closer than previously seen
                 float currz = zABC * pv;
@@ -270,30 +275,26 @@ void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb,
                     continue;
                 fb->SetZ(u, v, currz);
 
-                if (!insideTriangle(pv, e1, e2, e3)) {
+                // From model file
+                if (renderMode == 0) {
+                }
 
-                    // From model file
-                    if (renderMode == 0) {
-                    }
+                //Gourad shading
+                else if (renderMode == 1) {
 
-                    //Gourad shading
-                    else if (renderMode == 1) {
+                    unsigned int ssiRed = redABC * pv;
+                    unsigned int ssiGreen = greenABC * pv;
+                    unsigned int ssiBlue = blueABC * pv;
+                    unsigned int rgb = ssiRed << 16 |
+                                       ssiGreen << 8 | 
+                                       ssiBlue;
+                    fb->Set(u, v, rgb);
+                }
 
-                        unsigned int ssiRed = redABC * pv;
-                        unsigned int ssiGreen = greenABC * pv;
-                        unsigned int ssiBlue = blueABC * pv;
-                        unsigned int rgb = ssiRed << 16 |
-                            ssiGreen << 8 | 
-                            ssiBlue;
-                        fb->Set(u, v, rgb);
-                    }
-
-                    //From lightning expression per pixel
-                    else {
-                    }
+                //From lightning expression per pixel
+                else {
                 }
             }
-        }
     }
 
     delete []pverts;

@@ -243,3 +243,15 @@ V3& AABB::operator[](unsigned i) {
     return corners[i];
 }
 
+float AABB::length() {
+    return fabs(corners[0][0] - corners[1][0]);
+}
+
+float AABB::height() {
+    return fabs(corners[0][1] - corners[1][1]);
+}
+
+float AABB::width() {
+    return fabs(corners[0][2] - corners[1][2]);
+}
+
