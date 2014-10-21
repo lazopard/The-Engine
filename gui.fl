@@ -44,7 +44,7 @@ class GUI {open
       }
       Fl_Button {} {
         label R
-        callback {right_cb()}
+        callback {right_cb()} selected
         xywh {280 45 20 40}
       }
       Fl_Button {} {
@@ -135,12 +135,12 @@ class GUI {open
       Fl_Value_Input AmbientFactor {
         label {Ambient Factor}
         callback {ambient_cb()}
-        xywh {110 197 25 19} maximum 10 step 0.1
+        xywh {110 197 25 19} maximum 10 step 0.1 value 0.5
       }
       Fl_Value_Input SpecularExponent {
         label {Specular Exponent}
         callback {specular_cb()}
-        xywh {130 227 25 18} minimum 1 maximum 10 step 0.1
+        xywh {130 227 25 18} minimum 1 maximum 10 step 0.1 value 0.5
       }
       Fl_Button {} {
         label Camera
@@ -153,22 +153,22 @@ class GUI {open
       Fl_Button {} {
         label L
         callback {leftl_cb()}
-        xywh {285 155 20 30}
+        xywh {285 165 20 40}
       }
       Fl_Button {} {
         label R
         callback {rightl_cb()}
-        xywh {330 155 20 30}
+        xywh {330 165 20 40}
       }
       Fl_Button {} {
         label U
         callback {upl_cb()}
-        xywh {305 150 25 20}
+        xywh {305 145 25 20}
       }
       Fl_Button {} {
         label D
         callback {downl_cb()}
-        xywh {305 170 25 25}
+        xywh {305 205 25 25}
       }
       Fl_Button {} {
         label SM1
@@ -204,6 +204,16 @@ class GUI {open
         label {Nearest Neighbor}
         callback {nn_cb()}
         xywh {365 240 120 25}
+      }
+      Fl_Button {} {
+        label F
+        callback {ftl_cb()}
+        xywh {305 165 25 20}
+      }
+      Fl_Button {} {
+        label B
+        callback {btl_cb()}
+        xywh {305 185 25 20}
       }
     }
   }
@@ -300,7 +310,8 @@ class GUI {open
   Function {leftl_cb()} {} {
     code {scene->lightSourceLeft();} {}
   }
-  Function {rightl_cb()} {} {
+  Function {rightl_cb()} {open
+  } {
     code {scene->lightSourceRight();} {}
   }
   Function {sm1_cb()} {} {
@@ -326,7 +337,14 @@ class GUI {open
   }
   Function {nn_cb()} {open
   } {
-    code {scene->tmNN();} {selected
-    }
+    code {scene->tmNN();} {}
+  }
+  Function {ftl_cb()} {open
+  } {
+    code {scene->lightSourceFront();} {}
+  }
+  Function {btl_cb()} {open
+  } {
+    code {scene->lightSourceBack();} {}
   }
 } 

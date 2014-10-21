@@ -102,6 +102,10 @@ private:
   static void cb_Bilinear(Fl_Button*, void*);
   inline void cb_Nearest_i(Fl_Button*, void*);
   static void cb_Nearest(Fl_Button*, void*);
+  inline void cb_F1_i(Fl_Button*, void*);
+  static void cb_F1(Fl_Button*, void*);
+  inline void cb_B1_i(Fl_Button*, void*);
+  static void cb_B1(Fl_Button*, void*);
 public:
   void show();
   void DBG_cb();
@@ -141,5 +145,7 @@ public:
   void bilinear_cb();
   void repeat_cb();
   void nn_cb();
+  void ftl_cb();
+  void btl_cb();
 };
 #endif

@@ -30,10 +30,11 @@ Scene::Scene() {
     float hfov = 55.0f;
     ppc = new PPC(hfov, w, h);
 
-    ka=se=0;
+    ka=se=0.5;
     sm = 0;
     tl = 0;
     tm = 0;
+    l = 0;
 
     tmeshesN = 0;
     tmeshes = 0;
@@ -74,11 +75,18 @@ void Scene::SaveCamera() {
 }
 
 void Scene::Render() {
-    fb->Set(0xFFFFFFFF);
-    for (int tmi = 0; tmi < tmeshesN; tmi++) {
-        if (tmeshes[tmi]->enabled)
-            tmeshes[tmi]->RenderFilled(ppc, fb, 0x0000FF, l, ka, se, sm);
 
+    unsigned int color = 0xFF0000FF;
+    fb->Clear(0xFFFFFFFF, 0.0f);
+    for (int tmi = 0; tmi < tmeshesN; tmi++) {
+        if (!tmeshes[tmi]->enabled)
+            continue;
+        if (tmeshes[tmi]->trisN == 0)
+            tmeshes[tmi]->RenderPoints(ppc, fb, 1);
+        else {
+            //tmeshes[tmi]->RenderWireframe(ppc, fb, 0xFF000000);
+            tmeshes[tmi]->RenderFilled(ppc, fb, color, l, ka, se, sm);
+        }
     }
     fb->redraw();
 }
@@ -160,13 +168,25 @@ void Scene::lightSourceDown() {
 }
 
 void Scene::lightSourceLeft() {
-    l += V3(-step/3, 0, 0);
+    l -= V3(step/3, 0, 0);
     Render();
     Fl::check();
 }
 
 void Scene::lightSourceRight() {
     l += V3(step/3, 0, 0);
+    Render();
+    Fl::check();
+}
+
+void Scene::lightSourceBack() {
+    l += V3(0, 0, step/3);
+    Render();
+    Fl::check();
+}
+
+void Scene::lightSourceFront() {
+    l -= V3(0, 0, step/3);
     Render();
     Fl::check();
 }
@@ -343,23 +363,21 @@ void Scene::loadGeometry() {
         newCenter = ppc->C;
         tmeshes[tmeshesN]->Position(newCenter);
         tmeshes[tmeshesN]->SetAABB();
-        ppc->TranslateZ(-2 * tmeshes[tmeshesN]->aabb->width());
-        l = ppc->C + V3(0, 20, 50);
+        ppc->TranslateZ(-2.5 * tmeshes[tmeshesN]->aabb->width());
+        l = tmeshes[tmeshesN]->GetCenter() + V3(0.0f, 0.0f, 50);
         tmeshesN++;
         Render();
+        Fl::check();
         return;
     }
+    newCenter = tmeshes[tmeshesN]->GetCenter() + V3(tmeshes[tmeshesN]->aabb->length(), 0, 0);
+    ppc->TranslateX(tmeshes[tmeshesN]->aabb->length() / 3.0f);
+    //ppc->TranslateZ();
+    tmeshes[tmeshesN]->Position(newCenter);
+    tmeshesN++;
+    Render();
+    Fl::check();
 
-    else {
-
-        newCenter = tmeshes[tmeshesN]->GetCenter() + V3(100, 0, 0);
-        ZoomOut();
-        ZoomOut();
-        tmeshes[tmeshesN]->Position(newCenter);
-        tmeshesN++;
-        Render();
-
-    }
 }
 
 void Scene::loadImage() {

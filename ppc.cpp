@@ -151,7 +151,7 @@ V3 PPC::GetPointOnFocalPlane(float uf, float vf, float f) {
 }
 
 void PPC::Zoom(float step) {
-    c = (a * -PPu()) - (b * PPv()) + (GetVD()*GetF() * step);
+    c = (a * -PPu()) - (b * PPv()) + (GetVD()*GetF() * step/2);
 }
 
 void PPC::TranslateX(float step) {

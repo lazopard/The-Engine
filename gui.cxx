@@ -260,6 +260,20 @@ void GUI::cb_Nearest_i(Fl_Button*, void*) {
 void GUI::cb_Nearest(Fl_Button* o, void* v) {
   ((GUI*)(o->parent()->user_data()))->cb_Nearest_i(o,v);
 }
+
+void GUI::cb_F1_i(Fl_Button*, void*) {
+  ftl_cb();
+}
+void GUI::cb_F1(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_F1_i(o,v);
+}
+
+void GUI::cb_B1_i(Fl_Button*, void*) {
+  btl_cb();
+}
+void GUI::cb_B1(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_B1_i(o,v);
+}
 #include "scene.h"
 
 GUI::GUI() {
@@ -353,12 +367,14 @@ GUI::GUI() {
     { AmbientFactor = new Fl_Value_Input(110, 197, 25, 19, "Ambient Factor");
       AmbientFactor->maximum(10);
       AmbientFactor->step(0.1);
+      AmbientFactor->value(0.5);
       AmbientFactor->callback((Fl_Callback*)cb_AmbientFactor);
     } // Fl_Value_Input* AmbientFactor
     { SpecularExponent = new Fl_Value_Input(130, 227, 25, 18, "Specular Exponent");
       SpecularExponent->minimum(1);
       SpecularExponent->maximum(10);
       SpecularExponent->step(0.1);
+      SpecularExponent->value(0.5);
       SpecularExponent->callback((Fl_Callback*)cb_SpecularExponent);
     } // Fl_Value_Input* SpecularExponent
     { Fl_Button* o = new Fl_Button(245, 0, 150, 20, "Camera");
@@ -369,16 +385,16 @@ GUI::GUI() {
       o->box(FL_FLAT_BOX);
       o->labeltype(FL_ENGRAVED_LABEL);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(285, 155, 20, 30, "L");
+    { Fl_Button* o = new Fl_Button(285, 165, 20, 40, "L");
       o->callback((Fl_Callback*)cb_L1);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(330, 155, 20, 30, "R");
+    { Fl_Button* o = new Fl_Button(330, 165, 20, 40, "R");
       o->callback((Fl_Callback*)cb_R1);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(305, 150, 25, 20, "U");
+    { Fl_Button* o = new Fl_Button(305, 145, 25, 20, "U");
       o->callback((Fl_Callback*)cb_U1);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(305, 170, 25, 25, "D");
+    { Fl_Button* o = new Fl_Button(305, 205, 25, 25, "D");
       o->callback((Fl_Callback*)cb_D1);
     } // Fl_Button* o
     { Fl_Button* o = new Fl_Button(480, 200, 45, 25, "SM1");
@@ -401,6 +417,12 @@ GUI::GUI() {
     } // Fl_Button* o
     { Fl_Button* o = new Fl_Button(365, 240, 120, 25, "Nearest Neighbor");
       o->callback((Fl_Callback*)cb_Nearest);
+    } // Fl_Button* o
+    { Fl_Button* o = new Fl_Button(305, 165, 25, 20, "F");
+      o->callback((Fl_Callback*)cb_F1);
+    } // Fl_Button* o
+    { Fl_Button* o = new Fl_Button(305, 185, 25, 20, "B");
+      o->callback((Fl_Callback*)cb_B1);
     } // Fl_Button* o
     uiw->end();
   } // Fl_Double_Window* uiw
@@ -561,4 +583,12 @@ void GUI::repeat_cb() {
 
 void GUI::nn_cb() {
   scene->tmNN();
+}
+
+void GUI::ftl_cb() {
+  scene->lightSourceFront();
+}
+
+void GUI::btl_cb() {
+  scene->lightSourceBack();
 }

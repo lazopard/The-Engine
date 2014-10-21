@@ -52,6 +52,8 @@ public:
   void lightSourceDown();
   void lightSourceLeft();
   void lightSourceRight();
+  void lightSourceFront();
+  void lightSourceBack();
   void sm1();
   void sm2();
   void sm3();

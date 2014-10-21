@@ -119,7 +119,7 @@ void TMesh::RenderWireframe(PPC *ppc, FrameBuffer *fb, unsigned int color) {
         vinds[2] = tris[tri*3+2];
         for (int vi = 0; vi < 3; vi++) {
             fb->Draw3DSegment(verts[vinds[vi]], verts[vinds[(vi+1)%3]], ppc,
-                    color);
+                    cols[vinds[vi]].getColor());
         }
     }
 
