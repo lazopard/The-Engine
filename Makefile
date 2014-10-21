@@ -11,7 +11,7 @@ FLTKDIR = /usr/local
 APP_NAME = App
 
 # Source files (with extension)
-SOURCES = V3.cpp M33.cpp scene.cpp framebuffer.cpp tmesh.cpp ppc.cpp  gui.cxx
+SOURCES = V3.cpp M33.cpp framebuffer.cpp tmesh.cpp scene.cpp ppc.cpp  gui.cxx
 
 # Included directories
 INCLUDES = -I/. -I$(FLTKDIR)/include -I$(FLTKDIR)/FL/images

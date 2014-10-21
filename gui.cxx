@@ -232,10 +232,38 @@ void GUI::cb_SM3_i(Fl_Button*, void*) {
 void GUI::cb_SM3(Fl_Button* o, void* v) {
   ((GUI*)(o->parent()->user_data()))->cb_SM3_i(o,v);
 }
+
+void GUI::cb_Mirroring_i(Fl_Button*, void*) {
+  mirror_cb();
+}
+void GUI::cb_Mirroring(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_Mirroring_i(o,v);
+}
+
+void GUI::cb_Repetition_i(Fl_Button*, void*) {
+  repeat_cb();
+}
+void GUI::cb_Repetition(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_Repetition_i(o,v);
+}
+
+void GUI::cb_Bilinear_i(Fl_Button*, void*) {
+  bilinear_cb();
+}
+void GUI::cb_Bilinear(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_Bilinear_i(o,v);
+}
+
+void GUI::cb_Nearest_i(Fl_Button*, void*) {
+  nn_cb();
+}
+void GUI::cb_Nearest(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_Nearest_i(o,v);
+}
 #include "scene.h"
 
 GUI::GUI() {
-  { uiw = new Fl_Double_Window(617, 288, "GUI");
+  { uiw = new Fl_Double_Window(639, 320, "GUI");
     uiw->user_data((void*)(this));
     { Fl_Button* o = new Fl_Button(515, 0, 100, 25, "Play");
       o->selection_color(FL_DARK_RED);
@@ -361,6 +389,18 @@ GUI::GUI() {
     } // Fl_Button* o
     { Fl_Button* o = new Fl_Button(570, 200, 45, 25, "SM3");
       o->callback((Fl_Callback*)cb_SM3);
+    } // Fl_Button* o
+    { Fl_Button* o = new Fl_Button(495, 270, 75, 25, "Mirroring");
+      o->callback((Fl_Callback*)cb_Mirroring);
+    } // Fl_Button* o
+    { Fl_Button* o = new Fl_Button(370, 270, 95, 25, "Repetition");
+      o->callback((Fl_Callback*)cb_Repetition);
+    } // Fl_Button* o
+    { Fl_Button* o = new Fl_Button(490, 240, 140, 25, "Bilinear Interpolation");
+      o->callback((Fl_Callback*)cb_Bilinear);
+    } // Fl_Button* o
+    { Fl_Button* o = new Fl_Button(365, 240, 120, 25, "Nearest Neighbor");
+      o->callback((Fl_Callback*)cb_Nearest);
     } // Fl_Button* o
     uiw->end();
   } // Fl_Double_Window* uiw
@@ -505,4 +545,20 @@ void GUI::sm2_cb() {
 
 void GUI::sm3_cb() {
   scene->sm3();
+}
+
+void GUI::mirror_cb() {
+  scene->tileByMirror();
+}
+
+void GUI::bilinear_cb() {
+  scene->tmBilinear();
+}
+
+void GUI::repeat_cb() {
+  scene->tileByRepeat();
+}
+
+void GUI::nn_cb() {
+  scene->tmNN();
 }

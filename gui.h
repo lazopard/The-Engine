@@ -94,6 +94,14 @@ private:
   static void cb_SM2(Fl_Button*, void*);
   inline void cb_SM3_i(Fl_Button*, void*);
   static void cb_SM3(Fl_Button*, void*);
+  inline void cb_Mirroring_i(Fl_Button*, void*);
+  static void cb_Mirroring(Fl_Button*, void*);
+  inline void cb_Repetition_i(Fl_Button*, void*);
+  static void cb_Repetition(Fl_Button*, void*);
+  inline void cb_Bilinear_i(Fl_Button*, void*);
+  static void cb_Bilinear(Fl_Button*, void*);
+  inline void cb_Nearest_i(Fl_Button*, void*);
+  static void cb_Nearest(Fl_Button*, void*);
 public:
   void show();
   void DBG_cb();
@@ -129,5 +137,9 @@ public:
   void sm1_cb();
   void sm2_cb();
   void sm3_cb();
+  void mirror_cb();
+  void bilinear_cb();
+  void repeat_cb();
+  void nn_cb();
 };
 #endif

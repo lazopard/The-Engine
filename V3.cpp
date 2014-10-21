@@ -2,6 +2,8 @@
 #include <cmath>
 #include "M33.h"
 
+#define EPSILON 0.000001
+
 V3::V3(float x, float y, float z) {
   xyz[0] = x;
   xyz[1] = y;
@@ -63,9 +65,9 @@ V3& V3::operator-=(V3 v) {
 }
 
 bool V3::operator==(V3 v) {
-    return abs(xyz[0] - v[0]) < 0.0001 &&
-           abs(xyz[1] - v[1]) < 0.0001 &&
-           abs(xyz[2] - v[2]) < 0.0001;
+    return abs(xyz[0] - v[0]) < EPSILON &&
+           abs(xyz[1] - v[1]) < EPSILON &&
+           abs(xyz[2] - v[2]) < EPSILON;
 }
 
 bool V3::operator!=(V3 v) {
@@ -253,5 +255,30 @@ float AABB::height() {
 
 float AABB::width() {
     return fabs(corners[0][2] - corners[1][2]);
+}
+
+bool AABB::Clip(float lf, float rf, float tf, float bf) {
+
+
+  if (corners[1][0] < lf)
+    return false;
+  if (corners[0][0] > rf)
+    return false;
+  if (corners[1][1] < tf)
+    return false;
+  if (corners[0][1] > bf)
+    return false;
+
+  if (corners[0][0] < lf)
+    corners[0][0] = lf;
+  if (corners[1][0] > rf)
+    corners[1][0] = rf;
+  if (corners[0][1] < tf)
+    corners[0][1] = tf;
+  if (corners[1][1] > bf)
+    corners[1][1] = bf;
+
+  return true;
+
 }
 

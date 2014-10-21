@@ -143,29 +143,30 @@ int main(void)
     // clear the screen
     srand((unsigned)time(NULL));
     while (1) {
-    memset(Screen, ' ', sizeof(Screen));
+        sleep(1);
+        memset(Screen, ' ', sizeof(Screen));
 
-    // generate random trinagle coordinates
+        // generate random trinagle coordinates
 
-    p0.x = rand() % SCREEN_WIDTH;
-    p0.y = rand() % SCREEN_HEIGHT;
+        p0.x = rand() % SCREEN_WIDTH;
+        p0.y = rand() % SCREEN_HEIGHT;
 
-    p1.x = rand() % SCREEN_WIDTH;
-    p1.y = rand() % SCREEN_HEIGHT;
+        p1.x = rand() % SCREEN_WIDTH;
+        p1.y = rand() % SCREEN_HEIGHT;
 
-    p2.x = rand() * rand() % SCREEN_WIDTH;
-    p2.y = rand() * rand() % SCREEN_HEIGHT;
+        p2.x = rand() * rand() % SCREEN_WIDTH;
+        p2.y = rand() * rand() % SCREEN_HEIGHT;
 
-    // draw the triangle
-    p0.color = '*';
-    DrawTriangle(p0, p1, p2);
+        // draw the triangle
+        p0.color = '*';
+        DrawTriangle(p0, p1, p2);
 
-    // also draw the triangle's vertices
-    SetPixel(p0.x, p0.y, '*');
-    SetPixel(p1.x, p1.y, '*');
-    SetPixel(p2.x, p2.y, '*');
+        // also draw the triangle's vertices
+        SetPixel(p0.x, p0.y, '*');
+        SetPixel(p1.x, p1.y, '*');
+        SetPixel(p2.x, p2.y, '*');
 
-    Visualize();
+        Visualize();
     }
 
     return 0;

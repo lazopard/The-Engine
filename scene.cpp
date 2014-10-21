@@ -32,6 +32,8 @@ Scene::Scene() {
 
     ka=se=0;
     sm = 0;
+    tl = 0;
+    tm = 0;
 
     tmeshesN = 0;
     tmeshes = 0;
@@ -73,13 +75,10 @@ void Scene::SaveCamera() {
 
 void Scene::Render() {
     fb->Set(0xFFFFFFFF);
-    V3 v(0,0,0);
     for (int tmi = 0; tmi < tmeshesN; tmi++) {
-        if (!tmeshes[tmi]->enabled)
-            continue;
-        //tmeshes[tmi]->RenderPoints(ppc, fb, 3);
-        //tmeshes[tmi]->RenderWireframe(ppc,fb, 0x00000000);
-        tmeshes[tmi]->RenderFilled(ppc, fb, 00000000, v, ka, se, sm);
+        if (tmeshes[tmi]->enabled)
+            tmeshes[tmi]->RenderFilled(ppc, fb, 0x0000FF, l, ka, se, sm);
+
     }
     fb->redraw();
 }
@@ -126,142 +125,6 @@ void Scene::PlayInterpolationAnimation() {
     return;
 }
 
-void Scene::PPCMovementAnimation() {
-    ofstream of;
-    of.open("camera_path.txt");
-    V3 C0 = ppc->C;
-    V3 lap = tmeshes[0]->GetCenter();
-    V3 vpv = V3(0.0f, 1.0f, 0.0f);
-
-    int frames = 0;
-
-    //Tilt
-    step = 20;
-    ppc->Tilt(step);
-    V3 C1 = ppc->C;
-    ppc->Tilt(-step);
-    int stepsN = 100;
-    for (int si = 0; si < stepsN; si++) {
-      V3 newC = C0 + (C1-C0)*(float)si/(float)(stepsN-1);
-      of << newC << endl;
-      ppc->PositionAndOrient(newC, lap, vpv);
-      Render();
-      Fl::check();
-      string s = to_string(frames);
-      s+=".tif";
-      const char *f = s.c_str();
-      saveTiff(f);
-      frames++;
-    }
-    ppc->Tilt(step);
-
-    C0 = ppc->C;
-
-    //Roll 
-    ppc->Roll(step);
-    C1 = ppc->C;
-    ppc->Roll(-step);
-    for (int si = 0; si < stepsN; si++) {
-      V3 newC = C0 + (C1-C0)*(float)si/(float)(stepsN-1);
-      of << newC << endl;
-      ppc->PositionAndOrient(newC, lap, vpv);
-      Render();
-      Fl::check();
-      string s = to_string(frames);
-      s+=".tif";
-      const char *f = s.c_str();
-      saveTiff(f);
-      frames++;
-    }
-    ppc->Roll(step);
-
-    C0 = ppc->C;
-
-    //Pan
-    ppc->Pan(step);
-    C1 = ppc->C;
-    ppc->Pan(-step);
-    for (int si = 0; si < stepsN; si++) {
-      V3 newC = C0 + (C1-C0)*(float)si/(float)(stepsN-1);
-      of << newC << endl;
-      ppc->PositionAndOrient(newC, lap, vpv);
-      Render();
-      Fl::check();
-      string s = to_string(frames);
-      s+=".tif";
-      const char *f = s.c_str();
-      saveTiff(f);
-      frames++;
-    }
-    ppc->Pan(step);
-
-    C0 = ppc->C;
-
-    //Left
-    ppc->TranslateX(-step);
-    C1 = ppc->C;
-    ppc->TranslateX(step);
-    for (int si = 0; si < stepsN; si++) {
-      V3 newC = C0 + (C1-C0)*(float)si/(float)(stepsN-1);
-      of << newC << endl;
-      ppc->PositionAndOrient(newC, lap, vpv);
-      Render();
-      Fl::check();
-      string s = to_string(frames);
-      s+=".tif";
-      const char *f = s.c_str();
-      saveTiff(f);
-      frames++;
-    }
-    ppc->TranslateX(-step);
-
-    C0 = ppc->C;
-
-    //Up
-    ppc->TranslateY(step);
-    C1 = ppc->C;
-    ppc->TranslateY(-step);
-    for (int si = 0; si < stepsN; si++) {
-      V3 newC = C0 + (C1-C0)*(float)si/(float)(stepsN-1);
-      of << newC << endl;
-      ppc->PositionAndOrient(newC, lap, vpv);
-      Render();
-      Fl::check();
-      string s = to_string(frames);
-      s+=".tif";
-      const char *f = s.c_str();
-      saveTiff(f);
-
-      frames++;
-    }
-    ppc->TranslateY(step);
-
-    C0 = ppc->C;
-
-    //Back
-    ppc->TranslateZ(-step);
-    C1 = ppc->C;
-    ppc->TranslateZ(step);
-    for (int si = 0; si < stepsN; si++) {
-      V3 newC = C0 + (C1-C0)*(float)si/(float)(stepsN-1);
-      of << newC << endl;
-      ppc->PositionAndOrient(newC, lap, vpv);
-      Render();
-      Fl::check();
-      string s = to_string(frames);
-      s+=".tif";
-      const char *f = s.c_str();
-      saveTiff(f);
-
-      frames++;
-    }
-    ppc->TranslateZ(-step);
-
-    C0 = ppc->C;
-
-    of.close();
-}
-
 void Scene::changeBrightness() {
     float brightness = gui->BrightnessSlider->value();
     fb->AdjustBrightness(brightness);
@@ -285,15 +148,27 @@ void Scene::adjustSpecular() {
 }
 
 void Scene::lightSourceUp() {
+    l += V3(0, -step/3, 0);
+    Render();
+    Fl::check();
 }
 
 void Scene::lightSourceDown() {
+    l += V3(0, step/3, 0);
+    Render();
+    Fl::check();
 }
 
 void Scene::lightSourceLeft() {
+    l += V3(-step/3, 0, 0);
+    Render();
+    Fl::check();
 }
 
 void Scene::lightSourceRight() {
+    l += V3(step/3, 0, 0);
+    Render();
+    Fl::check();
 }
 
 void Scene::detectEdges() {
@@ -312,31 +187,37 @@ void Scene::detectEdges() {
 void Scene::translateRight() {
     ppc->TranslateX(step);
     Render();
+    Fl::check();
 }
 
 void Scene::translateLeft() {
     ppc->TranslateX(-step);
     Render();
+    Fl::check();
 }
 
 void Scene::translateUp() {
     ppc->TranslateY(step);
     Render();
+    Fl::check();
 }
 
 void Scene::translateDown() {
     ppc->TranslateY(-step);
     Render();
+    Fl::check();
 }
 
 void Scene::translateFront() {
     ppc->TranslateZ(step);
     Render();
+    Fl::check();
 }
 
 void Scene::translateBack() {
     ppc->TranslateZ(-step);
     Render();
+    Fl::check();
 }
 
 void Scene::adjustStep() {
@@ -346,56 +227,93 @@ void Scene::adjustStep() {
 void Scene::ZoomIn() {
     ppc->Zoom(step);
     Render();
+    Fl::check();
 }
 
 void Scene::ZoomOut() {
+    if (step < 1.0f)
+        step = 1;
     ppc->Zoom(1/step);
     Render();
+    Fl::check();
 }
 
 void Scene::tiltUp() {
     ppc->Tilt(step);
     Render();
+    Fl::check();
 }
 
 void Scene::tiltDown() {
     ppc->Tilt(-step);
     Render();
+    Fl::check();
 }
 
 void Scene::panLeft() {
     ppc->Pan(step);
     Render();
+    Fl::check();
 }
 
 void Scene::panRight() {
     ppc->Pan(-step);
     Render();
+    Fl::check();
 }
 
 void Scene::rollLeft() {
     ppc->Roll(step);
     Render();
+    Fl::check();
 }
 
 void Scene::rollRight() {
     ppc->Roll(-step);
     Render();
+    Fl::check();
 }
 
 void Scene::sm1() {
     sm = 0;
     Render();
+    Fl::check();
 }
 
 void Scene::sm2() {
     sm = 1;
     Render();
+    Fl::check();
 }
 
 void Scene::sm3() {
     sm = 2;
     Render();
+    Fl::check();
+}
+
+void Scene::tileByRepeat(){
+    tl = 0;
+    Render();
+    Fl::check();
+}
+
+void Scene::tileByMirror(){
+    tl = 1;
+    Render();
+    Fl::check();
+}
+
+void Scene::tmBilinear(){
+    tm = 0;
+    Render();
+    Fl::check();
+}
+
+void Scene::tmNN(){
+    tm = 1;
+    Render();
+    Fl::check();
 }
 
 void Scene::loadGeometry() {
@@ -426,6 +344,7 @@ void Scene::loadGeometry() {
         tmeshes[tmeshesN]->Position(newCenter);
         tmeshes[tmeshesN]->SetAABB();
         ppc->TranslateZ(-2 * tmeshes[tmeshesN]->aabb->width());
+        l = ppc->C + V3(0, 20, 50);
         tmeshesN++;
         Render();
         return;

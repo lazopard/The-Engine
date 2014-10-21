@@ -65,6 +65,7 @@ class AABB {
         float length();
         float height();
         float width();
+        bool Clip(float lf, float rf, float tf, float bf);
         V3& operator[](unsigned);
 };
 

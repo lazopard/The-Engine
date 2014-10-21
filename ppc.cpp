@@ -2,6 +2,7 @@
 #include "ppc.h"
 #include "m33.h"
 #include <cmath>
+#include <cfloat>
 #include <iostream>
 #include <fstream>
 #include "framebuffer.h"
@@ -94,12 +95,17 @@ bool PPC::Project(V3 P, V3 &PP) {
 
     V3 q = cam.inverse() * (P-C);
 
+    PP[0] = FLT_MAX;
+    PP[1] = FLT_MAX;
+    PP[2] = FLT_MAX;
+
     if (q[2] <= 0.0f)
         return false;
 
     PP[0] = q[0] / q[2]; //u 
     PP[1] = q[1] / q[2]; //v
     PP[2] = 1.0f / q[2];
+
     return true;
 }
 

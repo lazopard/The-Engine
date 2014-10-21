@@ -6,10 +6,11 @@ class GUI {open
 } {
   decl {\#include "scene.h"} {private local
   }
-  Function {GUI()} {} {
+  Function {GUI()} {open
+  } {
     Fl_Window uiw {
-      label GUI open selected
-      xywh {454 101 617 288} type Double visible
+      label GUI open
+      xywh {454 101 639 320} type Double visible
     } {
       Fl_Button {} {
         label Play
@@ -184,6 +185,26 @@ class GUI {open
         callback {sm3_cb()}
         xywh {570 200 45 25}
       }
+      Fl_Button {} {
+        label Mirroring
+        callback {mirror_cb()}
+        xywh {495 270 75 25}
+      }
+      Fl_Button {} {
+        label Repetition
+        callback {repeat_cb()}
+        xywh {370 270 95 25}
+      }
+      Fl_Button {} {
+        label {Bilinear Interpolation}
+        callback {bilinear_cb()}
+        xywh {490 240 140 25}
+      }
+      Fl_Button {} {
+        label {Nearest Neighbor}
+        callback {nn_cb()}
+        xywh {365 240 120 25}
+      }
     }
   }
   Function {} {} {
@@ -290,5 +311,22 @@ class GUI {open
   }
   Function {sm3_cb()} {} {
     code {scene->sm3();} {}
+  }
+  Function {mirror_cb()} {open
+  } {
+    code {scene->tileByMirror();} {}
+  }
+  Function {bilinear_cb()} {open
+  } {
+    code {scene->tmBilinear();} {}
+  }
+  Function {repeat_cb()} {open
+  } {
+    code {scene->tileByRepeat();} {}
+  }
+  Function {nn_cb()} {open
+  } {
+    code {scene->tmNN();} {selected
+    }
   }
 } 

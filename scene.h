@@ -14,7 +14,8 @@ public:
   int tmeshesN;
   float step;
   float ka, se;
-  int sm;
+  int sm, tm, tl;
+  V3 l;
   Scene();
   void DBG();
   void Play();
@@ -54,6 +55,10 @@ public:
   void sm1();
   void sm2();
   void sm3();
+  void tileByRepeat();
+  void tileByMirror();
+  void tmBilinear();
+  void tmNN();
 };
 
 extern Scene *scene;

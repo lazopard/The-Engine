@@ -12,6 +12,8 @@ TMesh::TMesh() {
     trisN = 0;
     normals = 0;
     cols = 0;
+    ss = 0;
+    ts = 0;
     aabb = 0;
     enabled = false;
 }
@@ -124,31 +126,31 @@ void TMesh::RenderWireframe(PPC *ppc, FrameBuffer *fb, unsigned int color) {
 }
 
 /*
-void TMesh::RenderWireframe(PPC *ppc, FrameBuffer *fb, unsigned int color) {
+   void TMesh::RenderWireframe(PPC *ppc, FrameBuffer *fb, unsigned int color) {
 
 
-  for (int tri = 0; tri < trisN; tri++) {
-    int vinds[3];
-    vinds[0] = tris[tri*3+0];
-    vinds[1] = tris[tri*3+1];
-    vinds[2] = tris[tri*3+2];
-    for (int vi = 0; vi < 3; vi++) {
-      V3 col0, col1;
-      if (cols) {
-        col0 = cols[vinds[vi]];
-        col1 = cols[vinds[(vi+1)%3]];
-      }
-      else {
-        col0.SetFromColor(color);
-        col1.SetFromColor(color);
-      }
-      fb->Draw3DSegment(verts[vinds[vi]], verts[vinds[(vi+1)%3]], ppc,
-        col0, col1);
-    }
-  }
+   for (int tri = 0; tri < trisN; tri++) {
+   int vinds[3];
+   vinds[0] = tris[tri*3+0];
+   vinds[1] = tris[tri*3+1];
+   vinds[2] = tris[tri*3+2];
+   for (int vi = 0; vi < 3; vi++) {
+   V3 col0, col1;
+   if (cols) {
+   col0 = cols[vinds[vi]];
+   col1 = cols[vinds[(vi+1)%3]];
+   }
+   else {
+   col0.SetFromColor(color);
+   col1.SetFromColor(color);
+   }
+   fb->Draw3DSegment(verts[vinds[vi]], verts[vinds[(vi+1)%3]], ppc,
+   col0, col1);
+   }
+   }
 
-}
-*/
+   }
+   */
 
 inline V3 screenSpaceInterpolate(V3 v1, V3 v2, V3 v3, V3 r) {
     M33 m;
@@ -158,35 +160,29 @@ inline V3 screenSpaceInterpolate(V3 v1, V3 v2, V3 v3, V3 r) {
     return m.inverse() * r;
 }
 
-#define EPSILON 0.000001
+void TMesh::SetEEQS(V3 pv0, V3 pv1, V3 pv2, V3 *eeqs) {
 
-inline bool areEqual(float a, float b) {
-    return fabs(a - b) < EPSILON;
-}
+    V3 pvs[3];
+    pvs[0] = pv0;
+    pvs[1] = pv1;
+    pvs[2] = pv2;
+    for (int i = 0; i < 3; i++) {
+        int i1 = (i+1)%3;
+        int i2 = (i+2)%3;
+        eeqs[i][0] = -pvs[i][1] + pvs[i1][1]; // -Ay + By; 
+        eeqs[i][1] = pvs[i][0] - pvs[i1][0]; // Ax - Bx; 
+        eeqs[i][2] = -pvs[i][0]*eeqs[i][0] - pvs[i][1]*eeqs[i][1];
 
-bool insideTriangle(V3 pv, V3 e1, V3 e2, V3 e3) {
-    bool inside1, inside2, inside3;
-    float ee1, ee2, ee3;
-    ee1 = e1 * pv;
-    ee2 = e2 * pv;
-    ee3 = e3 * pv;
-
-
-    //To fix shared edges
-    bool t = (areEqual(e1[0], 0)) ?  e1[0] > 0 : e1[2] > 0;
-    inside1 = ee1 > 0 || (areEqual(ee1, 0) && t);
-
-    t = (areEqual(e2[0], 0)) ? e2[0] > 0 : e2[2] > 0;
-    inside2 = ee2 > 0 || (areEqual(ee2, 0) && t);
-
-    t = (areEqual(e3[0], 0)) ? e3[0] > 0 : e3[2] > 0;
-    inside3 = ee3 > 0 || (areEqual(ee3, 0) && t);
-
-    return inside1 && inside2 && inside3;
+        // plug in third vertex, flip edge equation if negative
+        V3 v2(pvs[i2][0], pvs[i2][1], 1.0f);
+        if (eeqs[i]*v2 < 0.0f)
+            eeqs[i] = eeqs[i] * -1.0f;
+    }
 }
 
 void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb, 
-        unsigned int color, V3 L, float ka, float se, int renderMode) {
+        unsigned int color, V3 L, 
+        float ka, float se, int renderMode) {
 
     V3 *pverts = new V3[vertsN];
     for (int vi = 0; vi < vertsN; vi++) {
@@ -200,98 +196,99 @@ void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb,
         vinds[2] = tris[tri*3+2];
 
         // Do not render triangle if any of its vertices had an invalid projection
-        /*
-        if (!ppc->Project(verts[vinds[0]], pverts[vinds[0]]) ||
-            !ppc->Project(verts[vinds[1]], pverts[vinds[1]]) ||
-            !ppc->Project(verts[vinds[2]], pverts[vinds[2]])) {
+        if (pverts[vinds[0]][0] == FLT_MAX ||
+                pverts[vinds[1]][0] == FLT_MAX ||
+                pverts[vinds[2]][0] == FLT_MAX)
             continue;
-        }
-        */
 
-        //Compute bounding box of projected vertices
-        AABB bbox(pverts[vinds[0]]);
-        bbox.AddPoint(pverts[vinds[1]]);
-        bbox.AddPoint(pverts[vinds[2]]);
+        // Compute bounding box aabb of projected vertices
+        AABB aabb(pverts[vinds[0]]);
+        aabb.AddPoint(pverts[vinds[1]]);
+        aabb.AddPoint(pverts[vinds[2]]);
 
-        //Setup edge normals
-        V3 e1, e2, e3;
-        e1 = pverts[vinds[0]] % pverts[vinds[1]];
-        e2 = pverts[vinds[1]] % pverts[vinds[2]];
-        e3 = pverts[vinds[2]] % pverts[vinds[0]];
+        // Clip aabb with frame
+        aabb.Clip(0.0f, (float) fb->w, 0.0f, (float) fb->h);
 
-        //Setup linear variation of depth
-        V3 zr(pverts[vinds[0]][2], pverts[vinds[1]][2], 
-              pverts[vinds[2]][2]);
-        V3 zABC = screenSpaceInterpolate(pverts[vinds[0]],
-                       pverts[vinds[1]], pverts[vinds[2]], zr);
+        // Setup edge equations ee0, ee1, ee2
+        V3 eeqs[3];
+        SetEEQS(pverts[vinds[0]], pverts[vinds[1]], pverts[vinds[2]], eeqs);
 
-        //Extract rgb of verts
-        V3 rr, gr, br;
-        rr[0] = ((cols[vinds[0]]).getColor() >> 16) & 0xff;
-        gr[0] = ((cols[vinds[0]]).getColor() >> 8) & 0xff;
-        br[0] = (cols[vinds[0]]).getColor() & 0xff;
-        rr[1] = ((cols[vinds[1]]).getColor() >> 16) & 0xff;
-        gr[1] = ((cols[vinds[1]]).getColor() >> 8) & 0xff;
-        br[1] = (cols[vinds[1]]).getColor() & 0xff;
-        rr[2] = ((cols[vinds[2]]).getColor() >> 16) & 0xff;
-        gr[2] = ((cols[vinds[2]]).getColor() >> 8) & 0xff;
-        br[2] = (cols[vinds[2]]).getColor() & 0xff;
+        M33 ptm;
+        ptm[0] = pverts[vinds[0]];
+        ptm[1] = pverts[vinds[1]];
+        ptm[2] = pverts[vinds[2]];
+        ptm.setColumn(2, V3(1.0f, 1.0f, 1.0f));
+        ptm = ptm.inverse();
 
-        //Setup linear of red
-        V3 redABC = screenSpaceInterpolate(pverts[vinds[0]],
-                       pverts[vinds[1]], pverts[vinds[2]], rr);
-            
-        //Setup linear of green 
-        V3 greenABC = screenSpaceInterpolate(pverts[vinds[0]],
-                       pverts[vinds[1]], pverts[vinds[2]], gr);
+        // Setup screen space linear variation of depth: zABC 
+        V3 zABC = ptm*V3(pverts[vinds[0]][2],
+                pverts[vinds[1]][2], pverts[vinds[2]][2]);
 
-        //Setup linear of blue 
-        V3 blueABC = screenSpaceInterpolate(pverts[vinds[0]],
-                       pverts[vinds[1]], pverts[vinds[2]], br);
+        // Setup screen space linear variation of red: redABC 
+        V3 redABC = ptm*V3(cols[vinds[0]][0],
+                cols[vinds[1]][0], cols[vinds[2]][0]);
 
-        int left = (int) (bbox[0][0] + .5); 
-        int right = (int) (bbox[0][1] - .5); 
-        int top= (int) (bbox[1][0] +.5); 
-        int bottom = (int) (bbox[1][1] - .5);
+        // Setup screen space linear variation of red: greenABC 
+        V3 greenABC = ptm*V3(cols[vinds[0]][1],
+                cols[vinds[1]][1], cols[vinds[2]][1]);
 
-        int u, v; // current pixel considered
-        V3 currEELS; // edge expression values for line starts
-        V3 currEE; //  within line
-        V3 pv; //pixel vector
-        for(v = top; v <= bottom; v++) { 
-            for(u = left; u <= right; u++) {
-                pv[0] = u + 0.5f;
-                pv[1] = v + 0.5f;
-                pv[2] = 1.0f;
+        // Setup screen space linear variation of red: blueABC 
+        V3 blueABC = ptm*V3(cols[vinds[0]][2],
+                cols[vinds[1]][2], cols[vinds[2]][2]);
 
-                // Check if triangle is closer than previously seen
-                float currz = zABC * pv;
+        // Setup screen space linear variation of normals
+        V3 nxABC = ptm*V3(normals[vinds[0]][0],
+                normals[vinds[1]][0], normals[vinds[2]][0]);
+        V3 nyABC = ptm*V3(normals[vinds[0]][1],
+                normals[vinds[1]][1], normals[vinds[2]][1]);
+        V3 nzABC = ptm*V3(normals[vinds[0]][2],
+                normals[vinds[1]][2], normals[vinds[2]][2]);
+
+        int top = (int) (aabb.corners[0][1] + 0.5f);
+        int bottom = (int) (aabb.corners[1][1] - 0.5f);
+        int left = (int) (aabb.corners[0][0] + 0.5f);
+        int right = (int) (aabb.corners[1][0] - 0.5f);
+        for (int v = top; v <= bottom; v++) {
+            for (int u = left; u <= right; u++) {
+
+                V3 pixv(.5f + (float)u, .5f + (float)v, 1.0f);
+
+                if (eeqs[0]*pixv < 0.0f ||
+                        eeqs[1]*pixv < 0.0f ||
+                        eeqs[2]*pixv < 0.0f)
+                    continue;
+
+                float currz = zABC * pixv;
                 if (fb->IsFarther(u, v, currz))
                     continue;
                 fb->SetZ(u, v, currz);
 
-                if (!insideTriangle(pv, e1, e2, e3)) {
+                V3 currColor;
 
-                    // From model file
-                    if (renderMode == 0) {
-                    }
-
-                    //Gourad shading
-                    else if (renderMode == 1) {
-
-                        unsigned int ssiRed = redABC * pv;
-                        unsigned int ssiGreen = greenABC * pv;
-                        unsigned int ssiBlue = blueABC * pv;
-                        unsigned int rgb = ssiRed << 16 |
-                            ssiGreen << 8 | 
-                            ssiBlue;
-                        fb->Set(u, v, rgb);
-                    }
-
-                    //From lightning expression per pixel
-                    else {
-                    }
+                // vertex color interpolation from model file
+                if (renderMode == 0) { 
+                    currColor = V3(redABC * pixv, greenABC * pixv, blueABC * pixv);
                 }
+
+                // lightning expression per vertex
+                else if (renderMode == 1)  { 
+
+                }
+
+                // lightning expression per pixel by vertex normals
+                else if (renderMode == 2) {
+                    V3 fullColor;
+                    fullColor.setFromColor(color);
+                    V3 currNormal, lv;
+                    V3 pp(pixv);
+                    pp[2] = currz;
+                    lv = (L - ppc->UnProject(pp)).normalize();
+                    currNormal = V3(nxABC*pixv, nyABC*pixv, nzABC*pixv).normalize();
+                    float kd = lv * currNormal;
+                    kd = (kd < 0.0f) ? 0.0f : kd;
+                    currColor = fullColor * (ka + (1.0f-ka)*kd);
+                }
+                fb->Set(u, v, currColor.getColor());
             }
         }
     }
@@ -300,7 +297,15 @@ void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb,
 
 }
 
-void TMesh::RenderTM(PPC *ppc, FrameBuffer *fb, FrameBuffer *texture, int tm_mode) {
+void TMesh::mapToST(unsigned int *texture, int w, int h) {
+}
+
+int *mirrorTexture(unsigned int *texture, int w, int h) {
+    return NULL;
+}
+
+void TMesh::RenderTM(PPC *ppc, FrameBuffer *fb, unsigned int *texture, 
+        int w, int h, int tm_mode, int tl_mode) {
 }
 
 void TMesh::LoadBin(const char *fname) {
@@ -425,26 +430,26 @@ void TMesh::Scale(float scf) {
 
 void TMesh::SetFromFB(FrameBuffer *fb, PPC *ppc) {
 
-  vertsN = fb->w*fb->h;
-  verts = new V3[vertsN];
-  cols = new V3[vertsN];
+    vertsN = fb->w*fb->h;
+    verts = new V3[vertsN];
+    cols = new V3[vertsN];
 
-  float z0 = ppc->GetF() / 100.0f;
+    float z0 = ppc->GetF() / 100.0f;
 
-  for (int v = 0; v < fb->h; v++) {
-    for (int u = 0; u < fb->w; u++) {
-      int uv = (fb->h-1-v)*fb->w+u;
-      if (fb->zb[uv] == 0.0f) {
-        verts[uv] = V3(FLT_MAX, FLT_MAX, FLT_MAX);
-        cols[uv].setFromColor(fb->Get(u, v));
-        continue;
-      }
-//      V3 pp((float)u+0.5f, (float)v+0.5f, fb->zb[uv]);
-      V3 pp((float)u+0.5f, (float)v+0.5f, z0);
-      verts[uv] = ppc->UnProject(pp);
-      cols[uv].setFromColor(fb->Get(u, v));
+    for (int v = 0; v < fb->h; v++) {
+        for (int u = 0; u < fb->w; u++) {
+            int uv = (fb->h-1-v)*fb->w+u;
+            if (fb->zb[uv] == 0.0f) {
+                verts[uv] = V3(FLT_MAX, FLT_MAX, FLT_MAX);
+                cols[uv].setFromColor(fb->Get(u, v));
+                continue;
+            }
+            //V3 pp((float)u+0.5f, (float)v+0.5f, fb->zb[uv]);
+            V3 pp((float)u+0.5f, (float)v+0.5f, z0);
+            verts[uv] = ppc->UnProject(pp);
+            cols[uv].setFromColor(fb->Get(u, v));
+        }
     }
-  }
 
 }
 
