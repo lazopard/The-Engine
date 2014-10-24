@@ -44,7 +44,7 @@ class GUI {open
       }
       Fl_Button {} {
         label R
-        callback {right_cb()} selected
+        callback {right_cb()}
         xywh {280 45 20 40}
       }
       Fl_Button {} {
@@ -139,8 +139,8 @@ class GUI {open
       }
       Fl_Value_Input SpecularExponent {
         label {Specular Exponent}
-        callback {specular_cb()}
-        xywh {130 227 25 18} minimum 1 maximum 10 step 0.1 value 0.5
+        callback {specular_cb()} selected
+        xywh {130 227 25 18} minimum 1 maximum 10 step 0.1 value 0.3
       }
       Fl_Button {} {
         label Camera
@@ -198,12 +198,12 @@ class GUI {open
       Fl_Button {} {
         label {Bilinear Interpolation}
         callback {bilinear_cb()}
-        xywh {490 240 140 25}
+        xywh {360 240 140 25}
       }
       Fl_Button {} {
         label {Nearest Neighbor}
         callback {nn_cb()}
-        xywh {365 240 120 25}
+        xywh {515 240 120 25}
       }
       Fl_Button {} {
         label F

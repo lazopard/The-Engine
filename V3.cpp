@@ -257,6 +257,30 @@ float AABB::width() {
     return fabs(corners[0][2] - corners[1][2]);
 }
 
+float AABB::maxx() {
+    return corners[0][0] > corners[1][0] ? corners[0][0] : corners[1][0];
+}
+
+float AABB::minx() {
+    return corners[0][0] < corners[1][0] ? corners[0][0] : corners[1][0];
+}
+
+float AABB::maxy() {
+    return corners[0][1] < corners[1][1] ? corners[0][1] : corners[1][1];
+}
+
+float AABB::miny() {
+    return corners[0][1] > corners[1][1] ? corners[0][1] : corners[1][1];
+}
+
+float AABB::maxz() {
+    return corners[0][2] < corners[1][2] ? corners[0][2] : corners[1][2];
+}
+
+float AABB::minz() {
+    return corners[0][2] > corners[1][2] ? corners[0][2] : corners[1][2];
+}
+
 bool AABB::Clip(float lf, float rf, float tf, float bf) {
 
 

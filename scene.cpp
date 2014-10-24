@@ -30,8 +30,8 @@ Scene::Scene() {
     float hfov = 55.0f;
     ppc = new PPC(hfov, w, h);
 
-    ka=se=0.5;
-    sm = 0;
+    ka=se=0.3;
+    sm = 1;
     tl = 0;
     tm = 0;
     l = 0;
@@ -84,8 +84,7 @@ void Scene::Render() {
         if (tmeshes[tmi]->trisN == 0)
             tmeshes[tmi]->RenderPoints(ppc, fb, 1);
         else {
-            //tmeshes[tmi]->RenderWireframe(ppc, fb, 0xFF000000);
-            tmeshes[tmi]->RenderFilled(ppc, fb, color, l, ka, se, sm);
+            tmeshes[tmi]->RenderFilled(ppc, fb, color, l, ka, se, sm, tm, tl);
         }
     }
     fb->redraw();
@@ -93,44 +92,71 @@ void Scene::Render() {
 
 //play
 void Scene::Play() {
-    //PlayInterpolationAnimation();
-}
+    loadGeometry("geometry/teapot1k.bin");
 
-/*
-void Scene::DebugInterpolation() {
-}
-*/
+    V3 vs[4];
+    V3 colors[4];
+    colors[0] = V3(0.0f, 0.0f, 0.0f);
+    colors[1] = V3(0.0f, 0.0f, 0.0f);
+    colors[2] = V3(0.0f, 0.0f, 0.0f);
+    colors[3] = V3(0.0f, 0.0f, 0.0f);
 
-void Scene::PlayInterpolationAnimation() {
+    float up = tmeshes[tmeshesN-1]->aabb->maxy();
+    float down = tmeshes[tmeshesN-1]->aabb->miny();
+    float right = tmeshes[tmeshesN-1]->aabb->maxx();
+    float left = tmeshes[tmeshesN-1]->aabb->minx();
+    float front = tmeshes[tmeshesN-1]->aabb->maxz();
+    float back = tmeshes[tmeshesN-1]->aabb->minz();
 
-    PPC ppc1(*ppc);
-    V3 newC(-50.0f, 30.0f, -150.0f);
-    V3 lap = newC + V3(50.0f, -5.0f, -100.0f);
-    V3 vpv(0.0f, 1.0f, 0.0f);
-    ppc1.PositionAndOrient(newC, lap, vpv);
-    float f = 40.0f;
+    currTexture = new FrameBuffer(0, 0, 128, 128);
+    currTexture->SetChecker(1, 0xFFAAAAAA, 0xFFFFFFFF);
+    
+    //Roof
+    vs[0] = V3(left, up, front);
+    vs[1] = V3(right, up, front);
+    vs[2] = V3(left, up, back);
+    vs[3] = V3(right, up, back);
+    tmeshes[tmeshesN] = new TMesh(vs, colors);
+    tmeshes[tmeshesN]->AddTexture(currTexture);
+    tmeshesN++;
 
-    PPC ppc2(*ppc);
-    V3 newC2(30.0f, -30.0f, -150.0f);
-    V3 lap2 = newC2 + V3(-50.0f, +5.0f, -100.0f);
-    V3 vpv2(0.0f, 1.0f, 0.0f);
-    ppc2.PositionAndOrient(newC2, lap2, vpv2);
+    //Floor
+    vs[0] = V3(left, down, front);
+    vs[1] = V3(right, down, front);
+    vs[2] = V3(left, down, back);
+    vs[3] = V3(right, down, back);
+    tmeshes[tmeshesN] = new TMesh(vs, colors);
+    tmeshes[tmeshesN]->AddTexture(currTexture);
+    tmeshesN++;
 
-    int stepsN = 100;
-    for (int si = 0; si < stepsN; si++) {
-        fb->Clear(0xFFFFFF, 0.0f);
-        ppc1.RenderWireframe(ppc, fb, f, 0xFF0000FF);
-        ppc2.RenderWireframe(ppc, fb, f, 0xFF00FF00);
+    //Left
+    vs[0] = V3(left, up, front);
+    vs[1] = V3(left, down, front);
+    vs[2] = V3(left, up, back);
+    vs[3] = V3(left, down, back);
+    tmeshes[tmeshesN] = new TMesh(vs, colors);
+    tmeshes[tmeshesN]->AddTexture(currTexture);
+    tmeshesN++;
 
-        PPC ppc3(*ppc);
-        ppc3.SetByInterpolation(&ppc1, &ppc2, (float) si / (float) (stepsN-1));
-        ppc3.RenderWireframe(ppc, fb, f, 0xFF000000);
-        fb->redraw();
-        Fl::check();
-    }
+    //Right
+    vs[0] = V3(right, up, front);
+    vs[1] = V3(right, down, front);
+    vs[2] = V3(right, up, back);
+    vs[3] = V3(right, down, back);
+    tmeshes[tmeshesN] = new TMesh(vs, colors);
+    tmeshes[tmeshesN]->AddTexture(currTexture);
+    tmeshesN++;
 
-    fb->redraw();
-    return;
+    //Back
+    vs[0] = V3(left, up, front);
+    vs[1] = V3(right, up, front);
+    vs[2] = V3(right, down, front);
+    vs[3] = V3(left, down, front);
+    tmeshes[tmeshesN] = new TMesh(vs, colors);
+    tmeshes[tmeshesN]->AddTexture(currTexture);
+    tmeshesN++;
+
+    Render();
 }
 
 void Scene::changeBrightness() {
@@ -156,13 +182,13 @@ void Scene::adjustSpecular() {
 }
 
 void Scene::lightSourceUp() {
-    l += V3(0, -step/3, 0);
+    l += V3(0, step/3, 0);
     Render();
     Fl::check();
 }
 
 void Scene::lightSourceDown() {
-    l += V3(0, step/3, 0);
+    l += V3(0, -step/3, 0);
     Render();
     Fl::check();
 }
@@ -336,6 +362,38 @@ void Scene::tmNN(){
     Fl::check();
 }
 
+void Scene::loadGeometry(const char *filename) {
+
+    //use load bin and add to tmesh array
+    if (!tmeshes) {
+        tmeshes = new TMesh*[20];
+    }
+    tmeshes[tmeshesN] = new TMesh();
+    tmeshes[tmeshesN]->LoadBin(filename);
+
+    V3 newCenter;
+
+    //first mesh
+    if (tmeshesN == 0) {
+        newCenter = ppc->C;
+        tmeshes[tmeshesN]->Position(newCenter);
+        tmeshes[tmeshesN]->SetAABB();
+        ppc->TranslateZ(-2.5 * tmeshes[tmeshesN]->aabb->width());
+        l = tmeshes[tmeshesN]->GetCenter() + V3(0.0f, 0.0f, 50);
+        tmeshesN++;
+        Render();
+        Fl::check();
+        return;
+    }
+    newCenter = tmeshes[tmeshesN]->GetCenter() + V3(tmeshes[tmeshesN]->aabb->length(), 0, 0);
+    ppc->TranslateX(tmeshes[tmeshesN]->aabb->length() / 3.0f);
+    tmeshes[tmeshesN]->Position(newCenter);
+    tmeshesN++;
+    Render();
+    Fl::check();
+
+}
+
 void Scene::loadGeometry() {
     Fl_File_Chooser chooser(".",                        // directory
                             "*",                        // filter
@@ -372,12 +430,39 @@ void Scene::loadGeometry() {
     }
     newCenter = tmeshes[tmeshesN]->GetCenter() + V3(tmeshes[tmeshesN]->aabb->length(), 0, 0);
     ppc->TranslateX(tmeshes[tmeshesN]->aabb->length() / 3.0f);
-    //ppc->TranslateZ();
     tmeshes[tmeshesN]->Position(newCenter);
     tmeshesN++;
     Render();
     Fl::check();
 
+}
+
+void Scene::loadTexture(const char *filename) {
+    TIFF *tif = TIFFOpen(filename, "r");
+    if (!tif) {
+        fprintf(stderr, "TIFFOpen failed\n");
+        exit(1);
+    }
+
+    unsigned int w, h;
+    size_t npixels;
+    unsigned int *raster;
+
+    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
+    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
+    npixels = w * h;
+    raster = (uint32*) _TIFFmalloc(npixels * sizeof (uint32));
+    if (raster != NULL) {
+        if (TIFFReadRGBAImage(tif, w, h, raster, 0)) {
+            if (currTexture)
+                delete currTexture;
+            int u0 = w;
+            int v0 = h;
+            currTexture = new FrameBuffer(raster, u0, v0, w, h);
+        }
+        _TIFFfree(raster);
+    }
+    TIFFClose(tif);
 }
 
 void Scene::loadImage() {

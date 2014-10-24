@@ -374,7 +374,7 @@ GUI::GUI() {
       SpecularExponent->minimum(1);
       SpecularExponent->maximum(10);
       SpecularExponent->step(0.1);
-      SpecularExponent->value(0.5);
+      SpecularExponent->value(0.3);
       SpecularExponent->callback((Fl_Callback*)cb_SpecularExponent);
     } // Fl_Value_Input* SpecularExponent
     { Fl_Button* o = new Fl_Button(245, 0, 150, 20, "Camera");
@@ -412,10 +412,10 @@ GUI::GUI() {
     { Fl_Button* o = new Fl_Button(370, 270, 95, 25, "Repetition");
       o->callback((Fl_Callback*)cb_Repetition);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(490, 240, 140, 25, "Bilinear Interpolation");
+    { Fl_Button* o = new Fl_Button(360, 240, 140, 25, "Bilinear Interpolation");
       o->callback((Fl_Callback*)cb_Bilinear);
     } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(365, 240, 120, 25, "Nearest Neighbor");
+    { Fl_Button* o = new Fl_Button(515, 240, 120, 25, "Nearest Neighbor");
       o->callback((Fl_Callback*)cb_Nearest);
     } // Fl_Button* o
     { Fl_Button* o = new Fl_Button(305, 165, 25, 20, "F");

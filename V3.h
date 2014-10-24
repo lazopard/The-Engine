@@ -65,6 +65,12 @@ class AABB {
         float length();
         float height();
         float width();
+        float maxx();
+        float minx();        
+        float maxy();
+        float miny();
+        float maxz();
+        float minz();
         bool Clip(float lf, float rf, float tf, float bf);
         V3& operator[](unsigned);
 };

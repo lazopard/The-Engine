@@ -24,6 +24,7 @@ FrameBuffer::FrameBuffer(unsigned int *raster, int u0, int v0, unsigned int _w, 
     w = _w;
     h = _h;
     pix = new unsigned int[w*h];
+
     _TIFFmemcpy(pix, raster, (w*h) * sizeof(uint32));
 
     brightness = DEFAULT_B;

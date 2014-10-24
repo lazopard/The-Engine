@@ -9,6 +9,7 @@ class Scene {
 public:
   GUI *gui;
   FrameBuffer *fb;
+  FrameBuffer *currTexture;
   PPC *ppc;
   TMesh **tmeshes;
   int tmeshesN;
@@ -22,6 +23,8 @@ public:
   void saveTiff(const char *filename);
   void Render();
   void loadImage();
+  void loadTexture(const char *filename);
+  void loadGeometry(const char *filename);
   void loadGeometry();
   void LoadCamera();
   void SaveCamera();

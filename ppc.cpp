@@ -201,7 +201,6 @@ void PPC::SetByInterpolation(PPC* ppc0, PPC* ppc1, float frac) {
   V3 newvd = (vd0 + (vd1 - vd0)*frac).normalize();
   V3 vpv = (ppc0->b + (ppc1->b - ppc0->b)*frac).normalize()*-1.0f;
   PositionAndOrient(newC, newC + newvd, vpv);
-
 }
 
 void PPC::RenderWireframe(PPC *ppc, FrameBuffer *fb, float f,
