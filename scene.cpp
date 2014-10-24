@@ -101,57 +101,57 @@ void Scene::Play() {
     colors[2] = V3(0.0f, 0.0f, 0.0f);
     colors[3] = V3(0.0f, 0.0f, 0.0f);
 
-    float up = tmeshes[tmeshesN-1]->aabb->maxy();
-    float down = tmeshes[tmeshesN-1]->aabb->miny();
+    float down = tmeshes[tmeshesN-1]->aabb->maxy();
+    float up = tmeshes[tmeshesN-1]->aabb->miny();
     float right = tmeshes[tmeshesN-1]->aabb->maxx();
     float left = tmeshes[tmeshesN-1]->aabb->minx();
-    float front = tmeshes[tmeshesN-1]->aabb->maxz();
-    float back = tmeshes[tmeshesN-1]->aabb->minz();
+    float back = tmeshes[tmeshesN-1]->aabb->maxz();
+    float front = tmeshes[tmeshesN-1]->aabb->minz();
 
     currTexture = new FrameBuffer(0, 0, 128, 128);
     currTexture->SetChecker(1, 0xFFAAAAAA, 0xFFFFFFFF);
     
-    //Roof
-    vs[0] = V3(left, up, front);
-    vs[1] = V3(right, up, front);
-    vs[2] = V3(left, up, back);
-    vs[3] = V3(right, up, back);
+    //Floor
+    vs[0] = V3(left, down, back);
+    vs[1] = V3(right, down, back);
+    vs[2] = V3(right, down, front);
+    vs[3] = V3(left, down, front);
     tmeshes[tmeshesN] = new TMesh(vs, colors);
     tmeshes[tmeshesN]->AddTexture(currTexture);
     tmeshesN++;
 
-    //Floor
-    vs[0] = V3(left, down, front);
-    vs[1] = V3(right, down, front);
-    vs[2] = V3(left, down, back);
-    vs[3] = V3(right, down, back);
+    //Roof
+    vs[0] = V3(left, up, back);
+    vs[1] = V3(right, up, back);
+    vs[2] = V3(right, up, front);
+    vs[3] = V3(left, up, front);
     tmeshes[tmeshesN] = new TMesh(vs, colors);
     tmeshes[tmeshesN]->AddTexture(currTexture);
     tmeshesN++;
 
     //Left
-    vs[0] = V3(left, up, front);
-    vs[1] = V3(left, down, front);
-    vs[2] = V3(left, up, back);
-    vs[3] = V3(left, down, back);
+    vs[0] = V3(left, down, back);
+    vs[1] = V3(left, up, back);
+    vs[2] = V3(left, up, front);
+    vs[3] = V3(left, down, front);
     tmeshes[tmeshesN] = new TMesh(vs, colors);
     tmeshes[tmeshesN]->AddTexture(currTexture);
     tmeshesN++;
 
     //Right
-    vs[0] = V3(right, up, front);
-    vs[1] = V3(right, down, front);
-    vs[2] = V3(right, up, back);
-    vs[3] = V3(right, down, back);
+    vs[0] = V3(right, down, back);
+    vs[1] = V3(right, up, back);
+    vs[2] = V3(right, up, front);
+    vs[3] = V3(right, down, front);
     tmeshes[tmeshesN] = new TMesh(vs, colors);
     tmeshes[tmeshesN]->AddTexture(currTexture);
     tmeshesN++;
 
-    //Back
-    vs[0] = V3(left, up, front);
-    vs[1] = V3(right, up, front);
-    vs[2] = V3(right, down, front);
-    vs[3] = V3(left, down, front);
+    //back
+    vs[0] = V3(left, down, back);
+    vs[1] = V3(right, down, back);
+    vs[2] = V3(right, up, back);
+    vs[3] = V3(left, up, back);
     tmeshes[tmeshesN] = new TMesh(vs, colors);
     tmeshes[tmeshesN]->AddTexture(currTexture);
     tmeshesN++;
