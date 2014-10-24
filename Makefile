@@ -2,7 +2,7 @@
 CC = g++
 
 # Compiling flags to be used
-CFLAGS = -g -c -Wall -pedantic
+CFLAGS = -O2 -c -Wall -pedantic
 
 # Directory which contains FLTK
 FLTKDIR = /usr/local

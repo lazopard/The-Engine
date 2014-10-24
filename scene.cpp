@@ -101,12 +101,12 @@ void Scene::Play() {
     colors[2] = V3(0.0f, 0.0f, 0.0f);
     colors[3] = V3(0.0f, 0.0f, 0.0f);
 
-    float down = tmeshes[tmeshesN-1]->aabb->maxy();
-    float up = tmeshes[tmeshesN-1]->aabb->miny();
-    float right = tmeshes[tmeshesN-1]->aabb->maxx();
-    float left = tmeshes[tmeshesN-1]->aabb->minx();
-    float back = tmeshes[tmeshesN-1]->aabb->maxz();
-    float front = tmeshes[tmeshesN-1]->aabb->minz();
+    float down = tmeshes[tmeshesN-1]->aabb->maxy() * 2;
+    float up = tmeshes[tmeshesN-1]->aabb->miny() * 2;
+    float right = tmeshes[tmeshesN-1]->aabb->maxx() * 2;
+    float left = tmeshes[tmeshesN-1]->aabb->minx() * 2;
+    float back = tmeshes[tmeshesN-1]->aabb->maxz() * 2;
+    float front = tmeshes[tmeshesN-1]->aabb->minz() * 2;
 
     currTexture = new FrameBuffer(0, 0, 128, 128);
     currTexture->SetChecker(1, 0xFFAAAAAA, 0xFFFFFFFF);
@@ -379,7 +379,7 @@ void Scene::loadGeometry(const char *filename) {
         tmeshes[tmeshesN]->Position(newCenter);
         tmeshes[tmeshesN]->SetAABB();
         ppc->TranslateZ(-2.5 * tmeshes[tmeshesN]->aabb->width());
-        l = tmeshes[tmeshesN]->GetCenter() + V3(0.0f, 0.0f, 50);
+        l = tmeshes[tmeshesN]->GetCenter() + V3(0.0f, 0.0f, 50.0f);
         tmeshesN++;
         Render();
         Fl::check();
@@ -391,7 +391,6 @@ void Scene::loadGeometry(const char *filename) {
     tmeshesN++;
     Render();
     Fl::check();
-
 }
 
 void Scene::loadGeometry() {
@@ -434,7 +433,6 @@ void Scene::loadGeometry() {
     tmeshesN++;
     Render();
     Fl::check();
-
 }
 
 void Scene::loadTexture(const char *filename) {
