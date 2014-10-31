@@ -82,7 +82,7 @@ void Scene::RenderHW() {
     for (int tmi = 0; tmi < tmeshesN; tmi++) {
         if (!tmeshes[tmi]->enabled)
             continue;
-        tmeshes[tmi]->RenderHW(rm);
+        tmeshes[tmi]->RenderWireframeHW();
     }
     hwfb->redraw();
 }

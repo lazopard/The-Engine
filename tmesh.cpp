@@ -367,23 +367,23 @@ void TMesh::RenderHW(int mode) {
     glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-void TriangleMesh::RenderSharedVertexHW(int renderMode) {
-    if (renderMode & TRIANGLE_RENDERMODE_WF) {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        if (glColor[0] != -1.0f)
-            glColor4fv(glColor);
-    }
-    else
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+void TMesh::RenderWireframeHW() {
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glEnableClientState(GL_VERTEX_ARRAY);
+
     // similar for array of colors and array of texture coordinates
-    if (glNormals)
+    if (normals)
         glEnableClientState(GL_NORMAL_ARRAY);
-    glVertexPointer(3, GL_FLOAT, 0, glVertices);
-    if (glNormals)
-        glNormalPointer(GL_FLOAT, 0, glNormals);
-    glDrawElements(GL_TRIANGLES, 3*trianglesN, GL_UNSIGNED_INT, 
-            connectivity);
+    glVertexPointer(3, GL_FLOAT, 0, (float*) verts);
+    if (normals)
+        glNormalPointer(GL_FLOAT, 0, (float*)normals);
+    glDrawElements(GL_TRIANGLES, 3*trisN, GL_UNSIGNED_INT, 
+            tris);
+
+    glEnableClientState(GL_COLOR_ARRAY);
+    glColorPointer(3, GL_FLOAT, 0, (float*)cols);
+
     glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
 }

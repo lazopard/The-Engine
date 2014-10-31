@@ -30,6 +30,7 @@ class TMesh {
                           V3 L, float ka, float se, int tm, int tl, int *smap);
         void RenderHW(int mode); 
         void SetAABB();
+        void RenderWireframeHW();
         void ClipAABB();
         void AddTexture(FrameBuffer *tex);
         void Translate(V3 tv);
