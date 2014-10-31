@@ -27,8 +27,8 @@ class TMesh {
         void RenderPoints(PPC *ppc, FrameBuffer *fb, int psize);
         void RenderWireframe(PPC *ppc, FrameBuffer *fb, unsigned int color);
         void RenderFilled(PPC *ppc, FrameBuffer *fb, unsigned int color, 
-                          V3 L, float ka, float se, 
-                          int renderMode, int tm, int tl);
+                          V3 L, float ka, float se, int tm, int tl, int *smap);
+        void RenderHW(int mode); 
         void SetAABB();
         void ClipAABB();
         void AddTexture(FrameBuffer *tex);

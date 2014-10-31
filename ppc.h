@@ -28,6 +28,8 @@ class PPC {
         void TranslateX(float step);
         void TranslateY(float step);
         void TranslateZ(float step);
+        void SetIntrinsicsHW(float nearz, float farz);
+        void SetExtrinsicsHW();
         void Pan(float theta);
         void Tilt(float theta);
         void Roll(float theta);

@@ -51,6 +51,29 @@ void PPC::Save(const char *filename) {
     ppc_f.close();
 }
 
+void PPC::SetIntrinsicsHW(float nearz, float farz) {
+
+    glViewport(0, 0, w, h);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    float scf = nearz / GetF();
+    float left = -(float)w/2.0f*scf;
+    float right = (float)w/2.0f*scf;
+    float top = (float)h/2.0f*scf;
+    float bottom = -(float)h/2.0f*scf;
+    glFrustum(left, right, bottom, top, nearz, farz);
+    glMatrixMode(GL_MODELVIEW);
+
+}
+
+void PPC::SetExtrinsicsHW() {
+
+    V3 lap = C + GetVD();
+    V3 up = b * -1.0f;
+    glLoadIdentity();
+    gluLookAt(C[0], C[1], C[2], lap[0], lap[1], lap[2], up[0], up[1], up[2]);
+}
+
 V3 PPC::GetVD() {
     V3 ret;
     ret = (a % b).normalize();

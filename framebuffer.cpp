@@ -15,6 +15,7 @@ FrameBuffer::FrameBuffer(int u0, int v0,
   h = _h;
   pix = new unsigned int[w*h];
   zb = new float[w*h];
+  isHW = false;
 
   brightness = DEFAULT_B;
   contrast = DEFAULT_C;
@@ -32,13 +33,17 @@ FrameBuffer::FrameBuffer(unsigned int *raster, int u0, int v0, unsigned int _w, 
 }
 
 void FrameBuffer::draw() {
-  glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, pix);
+    if (!isHW) {
+        glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, pix);
+    }
+    else {
+        scene->RenderHW();
+    }
 }
-
 void FrameBuffer::Set(unsigned int bgr) {
-  for (int i = 0; i < w*h; i++) {
-    pix[i] = bgr;
-  }
+    for (int i = 0; i < w*h; i++) {
+        pix[i] = bgr;
+    }
 }
 
 void FrameBuffer::Set(int u, int v, unsigned int color) {
@@ -301,7 +306,6 @@ bool FrameBuffer::IsFarther(int u, int v, float currz) {
     return true;
 
   return false;
-
 }
 
 void FrameBuffer::SetZ(int u, int v, float currz) {

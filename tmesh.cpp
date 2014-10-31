@@ -203,29 +203,11 @@ void TMesh::AddTexture(FrameBuffer *tex) {
     texture = new FrameBuffer(tex->pix, 0, 0, tex->w, tex->h);
 }
 
-/*
-
-//without projection
-void TMesh::ShadowMap(PPC *ppc, FrameBuffer *fb, int u1, int v1, V3 L) {
-
-}
-
-*/
-
-/*
-
-//with projection
-void TMesh::ShadowMap(PPC *ppc, FrameBuffer *fb, V3 L) {
-
-}
-
-*/
-
 void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb, unsigned int color, V3 L, 
-                         float ka, float se, 
-                         int renderMode, int tm, int tl) 
+                         float ka, float se, int tm, int tl, int *smap) 
 {
 
+    //Project all vertices
     V3 *pverts = new V3[vertsN];
     for (int vi = 0; vi < vertsN; vi++) {
         ppc->Project(verts[vi], pverts[vi]);
@@ -306,6 +288,7 @@ void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb, unsigned int color, V3 L,
             tABC = ptm * ts;
         }
 
+        // For every pixel in the bounding box
         int top = (int) (aabb.corners[0][1] + 0.5f);
         int bottom = (int) (aabb.corners[1][1] - 0.5f);
         int left = (int) (aabb.corners[0][0] + 0.5f);
@@ -330,8 +313,7 @@ void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb, unsigned int color, V3 L,
                 V3 currColor;
                 float msdn = denABC * pixv;
 
-                V3 texColor;
-                //if texture map
+                V3 fullColor;
                 if (tcs) {
                     float currs = sABC * pixv;
                     float currt = tABC * pixv;
@@ -343,34 +325,20 @@ void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb, unsigned int color, V3 L,
                     }
                     else if(tm == 1) { //bilinear
                     }
-                    texColor.setFromColor(texture->Get(ut, vt));
+                    fullColor.setFromColor(texture->Get(ut, vt));
                 }
-
-                // Model-space interpolation
-                if (renderMode == 0) { 
-                    currColor = V3(redNABC * pixv, greenNABC * pixv, blueNABC * pixv) / msdn;
+                else {
+                    fullColor = V3(redNABC * pixv, greenNABC * pixv, blueNABC * pixv) / msdn;
                 }
-
-                // lightning expression per pixel by vertex normals
-                else if (renderMode == 1) {
-
-                    V3 fullColor;
-                    if (tcs) {
-                        fullColor = V3(texColor[0], texColor[1], texColor[2]);
-                    }
-                    else {
-                        fullColor = V3(redNABC * pixv, greenNABC * pixv, blueNABC * pixv) / msdn;
-                    }
-                    V3 currNormal, lv;
-                    V3 pp(pixv);
-                    pp[2] = currz;
-                    lv = (L - ppc->UnProject(pp)).normalize();
-                    currNormal = V3(nxABC*pixv, nyABC*pixv, nzABC*pixv).normalize();
-                    float kd = lv * currNormal;
-                    kd = (kd < 0.0f) ? 0.0f : kd;
-                    float ks = 0; //pow(reflectedLightVector * eyeVector, se)
-                    currColor = fullColor * (ka + (1.0f-ka)*kd + ks);
-                }
+                V3 currNormal, lv;
+                V3 pp(pixv);
+                pp[2] = currz;
+                lv = (L - ppc->UnProject(pp)).normalize();
+                currNormal = V3(nxABC*pixv, nyABC*pixv, nzABC*pixv).normalize();
+                float kd = lv * currNormal;
+                kd = (kd < 0.0f) ? 0.0f : kd;
+                float ks = 0; //pow(reflectedLightVector * eyeVector, se)
+                currColor = fullColor * (ka + (1.0f-ka)*kd + ks);
 
                 fb->Set(u, v, currColor.getColor());
             }
@@ -378,6 +346,46 @@ void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb, unsigned int color, V3 L,
     }
 
     delete []pverts;
+}
+
+void TMesh::RenderHW(int mode) {
+
+    //Set vertices array
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glVertexPointer(3, GL_FLOAT, 0, (float*)verts);
+
+    //Set normals array
+    glEnableClientState(GL_NORMAL_ARRAY);
+    glNormalPointer(GL_FLOAT, 0, (float*)normals);
+
+    //Set color array
+    glEnableClientState(GL_COLOR_ARRAY);
+    glColorPointer(3, GL_FLOAT, 0, (float*)cols);
+    
+    //Set connectivity data
+    glDrawElements(GL_TRIANGLES, 3*trisN, GL_UNSIGNED_INT, tris);
+    glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+void TriangleMesh::RenderSharedVertexHW(int renderMode) {
+    if (renderMode & TRIANGLE_RENDERMODE_WF) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        if (glColor[0] != -1.0f)
+            glColor4fv(glColor);
+    }
+    else
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    // similar for array of colors and array of texture coordinates
+    if (glNormals)
+        glEnableClientState(GL_NORMAL_ARRAY);
+    glVertexPointer(3, GL_FLOAT, 0, glVertices);
+    if (glNormals)
+        glNormalPointer(GL_FLOAT, 0, glNormals);
+    glDrawElements(GL_TRIANGLES, 3*trianglesN, GL_UNSIGNED_INT, 
+            connectivity);
+    glDisableClientState(GL_NORMAL_ARRAY);
+    glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 void TMesh::LoadBin(const char *fname) {

@@ -88,12 +88,6 @@ private:
   static void cb_U1(Fl_Button*, void*);
   inline void cb_D1_i(Fl_Button*, void*);
   static void cb_D1(Fl_Button*, void*);
-  inline void cb_SM1_i(Fl_Button*, void*);
-  static void cb_SM1(Fl_Button*, void*);
-  inline void cb_SM2_i(Fl_Button*, void*);
-  static void cb_SM2(Fl_Button*, void*);
-  inline void cb_SM3_i(Fl_Button*, void*);
-  static void cb_SM3(Fl_Button*, void*);
   inline void cb_Mirroring_i(Fl_Button*, void*);
   static void cb_Mirroring(Fl_Button*, void*);
   inline void cb_Repetition_i(Fl_Button*, void*);
@@ -138,9 +132,6 @@ public:
   void downl_cb();
   void leftl_cb();
   void rightl_cb();
-  void sm1_cb();
-  void sm2_cb();
-  void sm3_cb();
   void mirror_cb();
   void bilinear_cb();
   void repeat_cb();

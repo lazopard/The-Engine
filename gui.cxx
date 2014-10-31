@@ -212,27 +212,6 @@ void GUI::cb_D1(Fl_Button* o, void* v) {
   ((GUI*)(o->parent()->user_data()))->cb_D1_i(o,v);
 }
 
-void GUI::cb_SM1_i(Fl_Button*, void*) {
-  sm1_cb();
-}
-void GUI::cb_SM1(Fl_Button* o, void* v) {
-  ((GUI*)(o->parent()->user_data()))->cb_SM1_i(o,v);
-}
-
-void GUI::cb_SM2_i(Fl_Button*, void*) {
-  sm2_cb();
-}
-void GUI::cb_SM2(Fl_Button* o, void* v) {
-  ((GUI*)(o->parent()->user_data()))->cb_SM2_i(o,v);
-}
-
-void GUI::cb_SM3_i(Fl_Button*, void*) {
-  sm3_cb();
-}
-void GUI::cb_SM3(Fl_Button* o, void* v) {
-  ((GUI*)(o->parent()->user_data()))->cb_SM3_i(o,v);
-}
-
 void GUI::cb_Mirroring_i(Fl_Button*, void*) {
   mirror_cb();
 }
@@ -367,14 +346,14 @@ GUI::GUI() {
     { AmbientFactor = new Fl_Value_Input(110, 197, 25, 19, "Ambient Factor");
       AmbientFactor->maximum(10);
       AmbientFactor->step(0.1);
-      AmbientFactor->value(0.5);
+      AmbientFactor->value(0.2);
       AmbientFactor->callback((Fl_Callback*)cb_AmbientFactor);
     } // Fl_Value_Input* AmbientFactor
     { SpecularExponent = new Fl_Value_Input(130, 227, 25, 18, "Specular Exponent");
       SpecularExponent->minimum(1);
       SpecularExponent->maximum(10);
       SpecularExponent->step(0.1);
-      SpecularExponent->value(0.3);
+      SpecularExponent->value(0.2);
       SpecularExponent->callback((Fl_Callback*)cb_SpecularExponent);
     } // Fl_Value_Input* SpecularExponent
     { Fl_Button* o = new Fl_Button(245, 0, 150, 20, "Camera");
@@ -396,15 +375,6 @@ GUI::GUI() {
     } // Fl_Button* o
     { Fl_Button* o = new Fl_Button(305, 205, 25, 25, "D");
       o->callback((Fl_Callback*)cb_D1);
-    } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(480, 200, 45, 25, "SM1");
-      o->callback((Fl_Callback*)cb_SM1);
-    } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(525, 200, 45, 25, "SM2");
-      o->callback((Fl_Callback*)cb_SM2);
-    } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(570, 200, 45, 25, "SM3");
-      o->callback((Fl_Callback*)cb_SM3);
     } // Fl_Button* o
     { Fl_Button* o = new Fl_Button(495, 270, 75, 25, "Mirroring");
       o->callback((Fl_Callback*)cb_Mirroring);
@@ -555,18 +525,6 @@ void GUI::leftl_cb() {
 
 void GUI::rightl_cb() {
   scene->lightSourceRight();
-}
-
-void GUI::sm1_cb() {
-  scene->sm1();
-}
-
-void GUI::sm2_cb() {
-  scene->sm2();
-}
-
-void GUI::sm3_cb() {
-  scene->sm3();
 }
 
 void GUI::mirror_cb() {

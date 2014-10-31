@@ -13,6 +13,7 @@ public:
   unsigned int *pix, *opix;
   float *zb;
   int w, h;
+  bool isHW;
   static const float DEFAULT_B, DEFAULT_C;
   float brightness; // 0<= brightness <= 100
   float contrast; //1 <= contrast <= 3

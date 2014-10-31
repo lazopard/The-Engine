@@ -25,7 +25,7 @@ class GUI {open
       Fl_Button {} {
         label {Edge Detection}
         callback {detect_edges_cb()}
-        xywh {5 250 115 25}
+        xywh {10 280 115 25}
       }
       Fl_Button {} {
         label {Load image}
@@ -135,12 +135,12 @@ class GUI {open
       Fl_Value_Input AmbientFactor {
         label {Ambient Factor}
         callback {ambient_cb()}
-        xywh {110 197 25 19} maximum 10 step 0.1 value 0.5
+        xywh {110 197 25 19} maximum 10 step 0.1 value 0.2
       }
       Fl_Value_Input SpecularExponent {
         label {Specular Exponent}
-        callback {specular_cb()} selected
-        xywh {130 227 25 18} minimum 1 maximum 10 step 0.1 value 0.3
+        callback {specular_cb()}
+        xywh {130 227 25 18} minimum 1 maximum 10 step 0.1 value 0.2
       }
       Fl_Button {} {
         label Camera
@@ -169,21 +169,6 @@ class GUI {open
         label D
         callback {downl_cb()}
         xywh {305 205 25 25}
-      }
-      Fl_Button {} {
-        label SM1
-        callback {sm1_cb()}
-        xywh {480 200 45 25}
-      }
-      Fl_Button {} {
-        label SM2
-        callback {sm2_cb()}
-        xywh {525 200 45 25}
-      }
-      Fl_Button {} {
-        label SM3
-        callback {sm3_cb()}
-        xywh {570 200 45 25}
       }
       Fl_Button {} {
         label Mirroring
@@ -217,7 +202,8 @@ class GUI {open
       }
     }
   }
-  Function {} {} {
+  Function {} {selected
+  } {
     code {scene = new Scene;} {}
   }
   Function {show()} {} {
@@ -310,41 +296,25 @@ class GUI {open
   Function {leftl_cb()} {} {
     code {scene->lightSourceLeft();} {}
   }
-  Function {rightl_cb()} {open
-  } {
+  Function {rightl_cb()} {} {
     code {scene->lightSourceRight();} {}
   }
-  Function {sm1_cb()} {} {
-    code {scene->sm1();} {}
-  }
-  Function {sm2_cb()} {} {
-    code {scene->sm2();} {}
-  }
-  Function {sm3_cb()} {} {
-    code {scene->sm3();} {}
-  }
-  Function {mirror_cb()} {open
-  } {
+  Function {mirror_cb()} {} {
     code {scene->tileByMirror();} {}
   }
-  Function {bilinear_cb()} {open
-  } {
+  Function {bilinear_cb()} {} {
     code {scene->tmBilinear();} {}
   }
-  Function {repeat_cb()} {open
-  } {
+  Function {repeat_cb()} {} {
     code {scene->tileByRepeat();} {}
   }
-  Function {nn_cb()} {open
-  } {
+  Function {nn_cb()} {} {
     code {scene->tmNN();} {}
   }
-  Function {ftl_cb()} {open
-  } {
+  Function {ftl_cb()} {} {
     code {scene->lightSourceFront();} {}
   }
-  Function {btl_cb()} {open
-  } {
+  Function {btl_cb()} {} {
     code {scene->lightSourceBack();} {}
   }
 } 

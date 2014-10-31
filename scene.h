@@ -8,20 +8,24 @@
 class Scene {
 public:
   GUI *gui;
-  FrameBuffer *fb;
+  FrameBuffer *fb, *hwfb;
+  bool hwInit;
   FrameBuffer *currTexture;
   PPC *ppc;
   TMesh **tmeshes;
   int tmeshesN;
   float step;
   float ka, se;
-  int sm, tm, tl;
+  int rm;
+  int tm, tl;
+  int *smap;
   V3 l;
   Scene();
   void DBG();
   void Play();
   void saveTiff(const char *filename);
   void Render();
+  void RenderHW();
   void loadImage();
   void loadTexture(const char *filename);
   void loadGeometry(const char *filename);
@@ -29,11 +33,15 @@ public:
   void LoadCamera();
   void SaveCamera();
   void saveImage();
+  void AddMesh(TMesh *tmesh, FrameBuffer *tex);
+  void UpdateShadowMap();
   void ZoomIn();
   void ZoomOut();
+  void BuildMap(TMesh *tmesh, PPC *ppc);
   void changeBrightness();
   void changeContrast();
   void detectEdges();
+  void BuildRoomForMesh();
   void translateRight();
   void translateLeft();
   void translateUp();
@@ -57,9 +65,6 @@ public:
   void lightSourceRight();
   void lightSourceFront();
   void lightSourceBack();
-  void sm1();
-  void sm2();
-  void sm3();
   void tileByRepeat();
   void tileByMirror();
   void tmBilinear();
