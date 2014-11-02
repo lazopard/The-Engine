@@ -27,12 +27,13 @@ class TMesh {
         void RenderPoints(PPC *ppc, FrameBuffer *fb, int psize);
         void RenderWireframe(PPC *ppc, FrameBuffer *fb, unsigned int color);
         void RenderFilled(PPC *ppc, FrameBuffer *fb, unsigned int color, 
-                          V3 L, float ka, float se, int tm, int tl, int *smap);
-        void RenderHW(int mode); 
+                          V3 L, float ka, float se, int tm, int tl);
+        void RenderHW(); 
         void SetAABB();
         void RenderWireframeHW();
         void ClipAABB();
         void AddTexture(FrameBuffer *tex);
+        void AddTextureHW(unsigned int *raster);
         void Translate(V3 tv);
         V3 GetCenter();
         void Position(V3 newCenter);

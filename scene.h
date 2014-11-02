@@ -9,39 +9,22 @@ class Scene {
 public:
   GUI *gui;
   FrameBuffer *fb, *hwfb;
-  bool hwInit;
+
+  //Textures
   FrameBuffer *currTexture;
-  PPC *ppc;
-  TMesh **tmeshes;
-  int tmeshesN;
-  float step;
-  float ka, se;
-  int rm;
+  unsigned int **textures;
+  unsigned int *tnames;
   int tm, tl;
-  int *smap;
-  V3 l;
-  Scene();
-  void DBG();
-  void Play();
-  void saveTiff(const char *filename);
-  void Render();
-  void RenderHW();
-  void loadImage();
+  void tileByRepeat();
+  void tileByMirror();
+  void tmBilinear();
+  void tmNN();
   void loadTexture(const char *filename);
-  void loadGeometry(const char *filename);
-  void loadGeometry();
-  void LoadCamera();
-  void SaveCamera();
-  void saveImage();
-  void AddMesh(TMesh *tmesh, FrameBuffer *tex);
-  void UpdateShadowMap();
-  void ZoomIn();
-  void ZoomOut();
-  void BuildMap(TMesh *tmesh, PPC *ppc);
-  void changeBrightness();
-  void changeContrast();
-  void detectEdges();
-  void BuildRoomForMesh();
+  void loadTextureHW(const char *filename);
+
+  //Pinhole Camera
+  PPC *ppc;
+  float step;
   void translateRight();
   void translateLeft();
   void translateUp();
@@ -55,8 +38,23 @@ public:
   void panRight();
   void rollLeft();
   void rollRight();
-  void PlayInterpolationAnimation();
-  void PPCMovementAnimation();
+  void ZoomIn();
+  void ZoomOut();
+  void LoadCamera();
+  void SaveCamera();
+
+  //Tmeshes
+  TMesh **tmeshes;
+  int tmeshesN;
+  void loadGeometry(const char *filename);
+  void loadGeometry();
+  void AddMesh(TMesh *tmesh, FrameBuffer *tex);
+  void AddMeshHW(TMesh *tmesh, unsigned int *tex);
+
+
+  //Lighting
+  V3 l;
+  float ka, se;
   void adjustAmbient();
   void adjustSpecular();
   void lightSourceUp();
@@ -65,10 +63,21 @@ public:
   void lightSourceRight();
   void lightSourceFront();
   void lightSourceBack();
-  void tileByRepeat();
-  void tileByMirror();
-  void tmBilinear();
-  void tmNN();
+  
+  // Framebuffer
+  void changeBrightness();
+  void changeContrast();
+  void detectEdges();
+  void loadImage();
+  void saveImage();
+  void saveTiff(const char *filename);
+
+  //Scene methods
+  Scene();
+  void Play();
+  void Render();
+  void RenderHW();
+  void BuildRoomForMesh();
 };
 
 extern Scene *scene;

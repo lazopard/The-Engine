@@ -203,8 +203,11 @@ void TMesh::AddTexture(FrameBuffer *tex) {
     texture = new FrameBuffer(tex->pix, 0, 0, tex->w, tex->h);
 }
 
+void TMesh::AddTextureHW(unsigned int *raster) {
+}
+
 void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb, unsigned int color, V3 L, 
-                         float ka, float se, int tm, int tl, int *smap) 
+                         float ka, float se, int tm, int tl) 
 {
 
     //Project all vertices
@@ -348,7 +351,7 @@ void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb, unsigned int color, V3 L,
     delete []pverts;
 }
 
-void TMesh::RenderHW(int mode) {
+void TMesh::RenderHW() {
 
     //Set vertices array
     glEnableClientState(GL_VERTEX_ARRAY);
@@ -358,13 +361,20 @@ void TMesh::RenderHW(int mode) {
     glEnableClientState(GL_NORMAL_ARRAY);
     glNormalPointer(GL_FLOAT, 0, (float*)normals);
 
+    //Set texture coordinates
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glTexCoordPointer(2, GL_FLOAT, 0, tcs);
+
     //Set color array
     glEnableClientState(GL_COLOR_ARRAY);
     glColorPointer(3, GL_FLOAT, 0, (float*)cols);
-    
-    //Set connectivity data
+
     glDrawElements(GL_TRIANGLES, 3*trisN, GL_UNSIGNED_INT, tris);
+
     glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_NORMAL_ARRAY);
+    glDisableClientState(GL_COLOR_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
 void TMesh::RenderWireframeHW() {
@@ -423,7 +433,7 @@ void TMesh::LoadBin(const char *fname) {
     }
 
     ifs.read(&yn, 1); // texture coordinates 2 floats
-    float *tcs = 0; // don't have texture coordinates for now
+    //float *tcs = 0; // don't have texture coordinates for now
     if (tcs)
         delete tcs;
     tcs = 0;

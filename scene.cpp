@@ -26,10 +26,10 @@ Scene::Scene() {
     int h = sci*240;
     fb = new FrameBuffer(u0, v0, w, h);
     fb->label("SW Framebuffer");
-    fb->show();
+    //fb->show();
     gui->uiw->position(fb->w+20+20, 50);
 
-    hwfb = new FrameBuffer(u0, fb->h+v0 + 20, fb->w, fb->h);
+    hwfb = new FrameBuffer(u0, v0, fb->w, fb->h);
     hwfb->label("HW Framebuffer");
     hwfb->isHW = true;
     hwfb->show();
@@ -47,7 +47,7 @@ Scene::Scene() {
 
     //Textures and SM
     currTexture = 0;
-    smap = new int[w*h];
+    //tname = new int[20];
 
     // Tmeshes
     tmeshesN = 0;
@@ -56,141 +56,7 @@ Scene::Scene() {
     Render();
 }
 
-void Scene::RenderHW() {
 
-    if (!scene)
-        return;
-
-    if (!hwInit) {
-        glEnable(GL_DEPTH_TEST);
-        hwInit = true;
-    }
-    
-    // clear the framebuffer
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
-
-    // set the view
-    float nearz = 1.0f;
-    float farz = 1000.0f;
-    glLoadIdentity();
-    ppc->SetIntrinsicsHW(nearz, farz);
-    ppc->SetExtrinsicsHW();
-
-    // draw the tmeshes
-    for (int tmi = 0; tmi < tmeshesN; tmi++) {
-        if (!tmeshes[tmi]->enabled)
-            continue;
-        tmeshes[tmi]->RenderWireframeHW();
-    }
-    hwfb->redraw();
-}
-
-void Scene::BuildMap(TMesh *tmesh, PPC *ppc) {
-
-    //Project all vertices
-    V3 *pverts = new V3[tmesh->vertsN];
-    for (int vi = 0; vi < tmesh->vertsN; vi++) {
-        ppc->Project(tmesh->verts[vi], pverts[vi]);
-    }
-
-    for (int tri = 0; tri < tmesh->trisN; tri++) {
-
-        int vinds[3];
-        vinds[0] = tmesh->tris[tri*3+0];
-        vinds[1] = tmesh->tris[tri*3+1];
-        vinds[2] = tmesh->tris[tri*3+2];
-
-        // Do not render triangle if any of its vertices had an invalid projection
-        if (pverts[vinds[0]][0] == FLT_MAX ||
-                pverts[vinds[1]][0] == FLT_MAX ||
-                pverts[vinds[2]][0] == FLT_MAX)
-            continue;
-
-        // Compute bounding box aabb of projected vertices
-        AABB aabb(pverts[vinds[0]]);
-        aabb.AddPoint(pverts[vinds[1]]);
-        aabb.AddPoint(pverts[vinds[2]]);
-
-        // Clip aabb with frame
-        if (!aabb.Clip(0.0f, (float) fb->w, 0.0f, (float) fb->h)) {
-            continue;
-        }
-
-        // Setup edge equations ee0, ee1, ee2
-        V3 eeqs[3];
-        tmesh->SetEEQS(pverts[vinds[0]], pverts[vinds[1]], pverts[vinds[2]], eeqs);
-
-        //Setup coefficient matrix
-        M33 ptm;
-        ptm[0] = pverts[vinds[0]];
-        ptm[1] = pverts[vinds[1]];
-        ptm[2] = pverts[vinds[2]];
-        ptm.setColumn(2, V3(1.0f, 1.0f, 1.0f));
-        ptm = ptm.inverse();
-
-        V3 zs(pverts[vinds[0]][2], pverts[vinds[1]][2], pverts[vinds[2]][2]);
-
-        M33 msiQ = tmesh->GetMSIQ(tmesh->verts[vinds[0]], tmesh->verts[vinds[1]], tmesh->verts[vinds[2]], ppc); 
-        V3 denABC = msiQ[0] + msiQ[1] + msiQ[2];
-
-        V3 zNABC(msiQ.getColumn(0) * zs, msiQ.getColumn(1) * zs, 
-                msiQ.getColumn(2) * zs);
-
-        // For every pixel in the bounding box
-        int top = (int) (aabb.corners[0][1] + 0.5f);
-        int bottom = (int) (aabb.corners[1][1] - 0.5f);
-        int left = (int) (aabb.corners[0][0] + 0.5f);
-        int right = (int) (aabb.corners[1][0] - 0.5f);
-        for (int v = top; v <= bottom; v++) {
-            for (int u = left; u <= right; u++) {
-
-                V3 pixv(.5f + (float)u, .5f + (float)v, 1.0f);
-
-                //Check edge equations
-                if (eeqs[0]*pixv < 0.0f || 
-                        eeqs[1]*pixv < 0.0f || 
-                        eeqs[2]*pixv < 0.0f)
-                    continue;
-
-                float msdn = denABC * pixv;
-                V3 zp = zNABC / msdn;
-
-                // Map shadows
-                float currz = zp * pixv;
-                if (fb->IsFarther(u, v, currz))
-                    smap[(fb->h-1-v)*fb->w+u] = 0;
-                //in shadow
-                else 
-                    smap[(fb->h-1-v)*fb->w+u] = 1;
-                //in light;
-                //fb->SetZ(u, v, currz);
-            }
-        }
-    }
-
-    delete []pverts;
-}
-
-void Scene::UpdateShadowMap() {
-    
-    //Build camera on light's position
-    PPC *light_camera = new PPC(180, ppc->w, ppc->h);
-    light_camera->PositionAndOrient(l, l.normalize(), light_camera->b);
-
-    //Check if any mesh is blocking the light, build shadow map
-    for (int tmi = 0; tmi < tmeshesN; tmi++) {
-        if (!tmeshes[tmi]->enabled)
-            continue;
-        if (tmeshes[tmi]->trisN == 0)
-            continue;
-        BuildMap(tmeshes[tmi], light_camera);
-    }
-    
-    
-    delete light_camera;
-}
 
 void Scene::LoadCamera() {
     Fl_File_Chooser chooser(".",                        // directory
@@ -204,7 +70,7 @@ void Scene::LoadCamera() {
     // User hit cancel?
     if ( chooser.value() == NULL )
     { fprintf(stderr, "(User hit 'Cancel')\n"); return; }
-    //use load bin and add to tmesh array
+
     ppc = new PPC(chooser.value());
     Render();
 }
@@ -221,6 +87,7 @@ void Scene::SaveCamera() {
     // User hit cancel
     if ( chooser.value() == NULL )
     { fprintf(stderr, "(User hit 'Cancel')\n"); return; }
+
     ppc->Save(chooser.value());
 }
 
@@ -239,10 +106,44 @@ void Scene::Render() {
         if (tmeshes[tmi]->trisN == 0)
             tmeshes[tmi]->RenderPoints(ppc, fb, 1);
         else {
-            tmeshes[tmi]->RenderFilled(ppc, fb, color, l, ka, se, tm, tl, smap);
+            tmeshes[tmi]->RenderFilled(ppc, fb, color, l, ka, se, tm, tl);
         }
     }
     fb->redraw();
+}
+
+void Scene::RenderHW() {
+
+    if (!scene)
+        return;
+    
+    // clear the framebuffer
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+    /*
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glLightfv(GL_LIGHT0, GL_POSITION, (float*) &l);
+    */
+    glEnable(GL_TEXTURE_2D);
+
+    // set the view
+    float nearz = 1.0f;
+    float farz = 1000.0f;
+    glLoadIdentity();
+    ppc->SetIntrinsicsHW(nearz, farz);
+    ppc->SetExtrinsicsHW();
+
+    // draw the tmeshes
+    for (int tmi = 0; tmi < tmeshesN; tmi++) {
+        if (!tmeshes[tmi]->enabled)
+            continue;
+        //tmeshes[tmi]->RenderWireframeHW();
+        tmeshes[tmi]->RenderHW();
+    }
+
+    hwfb->redraw();
 }
 
 void Scene::AddMesh(TMesh *tmesh, FrameBuffer *tex) {
@@ -250,13 +151,19 @@ void Scene::AddMesh(TMesh *tmesh, FrameBuffer *tex) {
         tmesh->AddTexture(tex);
     tmeshes[tmeshesN] = tmesh;
     tmeshesN++;
-    UpdateShadowMap();
+}
+
+void Scene::AddMeshHW(TMesh *tmesh, unsigned int *tex) {
+    if (tex != NULL)
+        tmesh->AddTextureHW(tex);
+    tmeshes[tmeshesN] = tmesh;
+    tmeshesN++;
 }
 
 //play
 void Scene::Play() {
     loadGeometry("geometry/teapot1k.bin");
-
+    BuildRoomForMesh();
     Render();
 }
 
@@ -277,42 +184,42 @@ void Scene::BuildRoomForMesh() {
     float back = tmeshes[tmeshesN-1]->aabb->maxz() * 3;
     float front = ppc->C[2] - 10;
 
-    loadTexture("tex1.tiff");
+    loadTextureHW("tex1.tiff");
     
     //Floor
     vs[0] = V3(left, down, back);
     vs[1] = V3(right, down, back);
     vs[2] = V3(right, down, front);
     vs[3] = V3(left, down, front);
-    AddMesh( new TMesh(vs, colors), currTexture);
+    //AddMeshHW( new TMesh(vs, colors), currTexture);
 
     //Roof
     vs[0] = V3(left, up, back);
     vs[1] = V3(right, up, back);
     vs[2] = V3(right, up, front);
     vs[3] = V3(left, up, front);
-    AddMesh( new TMesh(vs, colors), currTexture);
+    //AddMeshHW( new TMesh(vs, colors), currTexture);
 
     //Left
     vs[0] = V3(left, down, back);
     vs[1] = V3(left, up, back);
     vs[2] = V3(left, up, front);
     vs[3] = V3(left, down, front);
-    AddMesh( new TMesh(vs, colors), currTexture);
+    //AddMeshHW( new TMesh(vs, colors), currTexture);
 
     //Right
     vs[0] = V3(right, down, back);
     vs[1] = V3(right, up, back);
     vs[2] = V3(right, up, front);
     vs[3] = V3(right, down, front);
-    AddMesh( new TMesh(vs, colors), currTexture);
+    //AddMeshHW( new TMesh(vs, colors), currTexture);
 
     //Back
     vs[0] = V3(left, down, back);
     vs[1] = V3(right, down, back);
     vs[2] = V3(right, up, back);
     vs[3] = V3(left, up, back);
-    AddMesh( new TMesh(vs, colors), currTexture);
+    //AddMeshHW( new TMesh(vs, colors), currTexture);
 }
 
 void Scene::changeBrightness() {
@@ -339,42 +246,36 @@ void Scene::adjustSpecular() {
 
 void Scene::lightSourceUp() {
     l += V3(0, step/3, 0);
-    UpdateShadowMap();
     Render();
     Fl::check();
 }
 
 void Scene::lightSourceDown() {
     l += V3(0, -step/3, 0);
-    UpdateShadowMap();
     Render();
     Fl::check();
 }
 
 void Scene::lightSourceLeft() {
     l -= V3(step/3, 0, 0);
-    UpdateShadowMap();
     Render();
     Fl::check();
 }
 
 void Scene::lightSourceRight() {
     l += V3(step/3, 0, 0);
-    UpdateShadowMap();
     Render();
     Fl::check();
 }
 
 void Scene::lightSourceBack() {
     l += V3(0, 0, step/3);
-    UpdateShadowMap();
     Render();
     Fl::check();
 }
 
 void Scene::lightSourceFront() {
     l -= V3(0, 0, step/3);
-    UpdateShadowMap();
     Render();
     Fl::check();
 }
@@ -514,7 +415,6 @@ void Scene::loadGeometry(const char *filename) {
     }
     tmeshes[tmeshesN] = new TMesh();
     tmeshes[tmeshesN]->LoadBin(filename);
-    UpdateShadowMap();
 
     V3 newCenter;
 
@@ -526,7 +426,6 @@ void Scene::loadGeometry(const char *filename) {
         ppc->TranslateZ(-2.5 * tmeshes[tmeshesN]->aabb->width());
         l = tmeshes[tmeshesN]->GetCenter() + V3(0.0f, 0.0f, 50.0f);
         tmeshesN++;
-        UpdateShadowMap();
         Render();
         Fl::check();
         return;
@@ -535,7 +434,6 @@ void Scene::loadGeometry(const char *filename) {
     ppc->TranslateX(tmeshes[tmeshesN]->aabb->length() / 3.0f);
     tmeshes[tmeshesN]->Position(newCenter);
     tmeshesN++;
-    UpdateShadowMap();
     Render();
     Fl::check();
 }
@@ -570,7 +468,6 @@ void Scene::loadGeometry() {
         ppc->TranslateZ(-2.5 * tmeshes[tmeshesN]->aabb->width());
         l = tmeshes[tmeshesN]->GetCenter() + V3(0.0f, 0.0f, 50);
         tmeshesN++;
-        UpdateShadowMap();
         Render();
         Fl::check();
         return;
@@ -579,7 +476,6 @@ void Scene::loadGeometry() {
     ppc->TranslateX(tmeshes[tmeshesN]->aabb->length() / 3.0f);
     tmeshes[tmeshesN]->Position(newCenter);
     tmeshesN++;
-    UpdateShadowMap();
     Render();
     Fl::check();
 }
@@ -612,11 +508,39 @@ void Scene::loadTexture(const char *filename) {
     TIFFClose(tif);
 }
 
+void Scene::loadTextureHW(const char *filename) {
+    TIFF *tif = TIFFOpen(filename, "r");
+    if (!tif) {
+        fprintf(stderr, "TIFFOpen failed\n");
+        exit(1);
+    }
+
+    unsigned int w, h;
+    size_t npixels;
+    unsigned int *raster;
+
+    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
+    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
+    npixels = w * h;
+    raster = (uint32*) _TIFFmalloc(npixels * sizeof (uint32));
+    if (raster != NULL) {
+        if (TIFFReadRGBAImage(tif, w, h, raster, 0)) {
+            if (currTexture)
+                delete currTexture;
+            int u0 = w;
+            int v0 = h;
+            currTexture = new FrameBuffer(raster, u0, v0, w, h);
+        }
+        _TIFFfree(raster);
+    }
+    TIFFClose(tif);
+}
+
 void Scene::loadImage() {
     Fl_File_Chooser chooser(".",                        // directory
-                            "*",                        // filter
-                            Fl_File_Chooser::SINGLE,     // chooser type
-                            "Open...");        // title
+            "*",                        // filter
+            Fl_File_Chooser::SINGLE,     // chooser type
+            "Open...");        // title
     chooser.show();
      while(chooser.shown())
     { Fl::wait(); }
