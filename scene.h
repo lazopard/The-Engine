@@ -9,6 +9,7 @@ class Scene {
 public:
   GUI *gui;
   FrameBuffer *fb, *hwfb;
+  int renderMode; //Software vs Hardware
 
   //Textures
   FrameBuffer *currTexture;

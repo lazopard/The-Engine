@@ -16,6 +16,8 @@ const float SM_EPS = 0.01f;
 
 Scene::Scene() {
 
+    renderMode = 1;
+
     //GUI and Window
     gui = new GUI();
     gui->show();
@@ -25,14 +27,10 @@ Scene::Scene() {
     int w = sci*320;
     int h = sci*240;
     fb = new FrameBuffer(u0, v0, w, h);
-    fb->label("SW Framebuffer");
-    //fb->show();
+    fb->label("Framebuffer");
+    //fb->isHW = true;
+    fb->show();
     gui->uiw->position(fb->w+20+20, 50);
-
-    hwfb = new FrameBuffer(u0, v0, fb->w, fb->h);
-    hwfb->label("HW Framebuffer");
-    hwfb->isHW = true;
-    hwfb->show();
 
     //PPC
     float hfov = 55.0f;
@@ -93,10 +91,10 @@ void Scene::SaveCamera() {
 
 void Scene::Render() {
 
-    RenderHW();
-    return;
-    //if (hwfb)
-     //   hwfb->redraw();
+    if (renderMode == 0) {
+        RenderHW();
+        return;
+    }
 
     unsigned int color = 0xFF0000FF;
     fb->Clear(0xFFFFFFFF, 0.0f);
@@ -121,11 +119,14 @@ void Scene::RenderHW() {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
+
+    //Lighting
     /*
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glLightfv(GL_LIGHT0, GL_POSITION, (float*) &l);
     */
+
     glEnable(GL_TEXTURE_2D);
 
     // set the view
@@ -143,7 +144,7 @@ void Scene::RenderHW() {
         tmeshes[tmi]->RenderHW();
     }
 
-    hwfb->redraw();
+    fb->redraw();
 }
 
 void Scene::AddMesh(TMesh *tmesh, FrameBuffer *tex) {
@@ -163,7 +164,7 @@ void Scene::AddMeshHW(TMesh *tmesh, unsigned int *tex) {
 //play
 void Scene::Play() {
     loadGeometry("geometry/teapot1k.bin");
-    BuildRoomForMesh();
+    //BuildRoomForMesh();
     Render();
 }
 
@@ -288,7 +289,6 @@ void Scene::detectEdges() {
   edgeDetect.normalize();
 
   fb->Convolve33(edgeDetect, fb);
-
   fb->show();
   return;
 }
@@ -565,7 +565,7 @@ void Scene::loadImage() {
     raster = (uint32*) _TIFFmalloc(npixels * sizeof (uint32));
     if (raster != NULL) {
         if (TIFFReadRGBAImage(tif, w, h, raster, 0)) {
-            fb->hide();
+            //fb->hide();
             delete fb;
             int u0 = w;
             int v0 = h;

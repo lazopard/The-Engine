@@ -369,8 +369,10 @@ void TMesh::RenderHW() {
     glEnableClientState(GL_COLOR_ARRAY);
     glColorPointer(3, GL_FLOAT, 0, (float*)cols);
 
+    //Draw
     glDrawElements(GL_TRIANGLES, 3*trisN, GL_UNSIGNED_INT, tris);
 
+    //Disable vertex values
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
@@ -433,7 +435,7 @@ void TMesh::LoadBin(const char *fname) {
     }
 
     ifs.read(&yn, 1); // texture coordinates 2 floats
-    //float *tcs = 0; // don't have texture coordinates for now
+    float *tcs = 0; // don't have texture coordinates for now
     if (tcs)
         delete tcs;
     tcs = 0;
