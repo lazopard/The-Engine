@@ -6,17 +6,18 @@
 #include <fstream>
 #include <tiffio.h>
 #include <float.h>
+#include <limits.h>
 
 using namespace std;
 
 Scene *scene;
 
 char filename[1024] = "";
-const float SM_EPS = 0.01f;
 
 Scene::Scene() {
 
-    renderMode = 1;
+    //Software vs Hardware rendering
+    renderMode = 0;
 
     //GUI and Window
     gui = new GUI();
@@ -28,7 +29,7 @@ Scene::Scene() {
     int h = sci*240;
     fb = new FrameBuffer(u0, v0, w, h);
     fb->label("Framebuffer");
-    //fb->isHW = true;
+    fb->isHW = true;
     fb->show();
     gui->uiw->position(fb->w+20+20, 50);
 
@@ -45,7 +46,9 @@ Scene::Scene() {
 
     //Textures and SM
     currTexture = 0;
-    //tname = new int[20];
+    textures = 0;
+    tnames = 0;
+    texN = 0;
 
     // Tmeshes
     tmeshesN = 0;
@@ -54,8 +57,7 @@ Scene::Scene() {
     Render();
 }
 
-
-
+//Load Camera coordinates and parameters
 void Scene::LoadCamera() {
     Fl_File_Chooser chooser(".",                        // directory
                             "*",                        // filter
@@ -73,6 +75,7 @@ void Scene::LoadCamera() {
     Render();
 }
 
+//Save Camera coordinates
 void Scene::SaveCamera() {
    Fl_File_Chooser chooser(".",
                             "*",
@@ -127,8 +130,6 @@ void Scene::RenderHW() {
     glLightfv(GL_LIGHT0, GL_POSITION, (float*) &l);
     */
 
-    glEnable(GL_TEXTURE_2D);
-
     // set the view
     float nearz = 1.0f;
     float farz = 1000.0f;
@@ -154,9 +155,9 @@ void Scene::AddMesh(TMesh *tmesh, FrameBuffer *tex) {
     tmeshesN++;
 }
 
-void Scene::AddMeshHW(TMesh *tmesh, unsigned int *tex) {
-    if (tex != NULL)
-        tmesh->AddTextureHW(tex);
+void Scene::AddMeshHW(TMesh *tmesh, unsigned int tname) {
+    if (tname != UINT_MAX)
+        tmesh->AddTextureHW(tname);
     tmeshes[tmeshesN] = tmesh;
     tmeshesN++;
 }
@@ -164,7 +165,7 @@ void Scene::AddMeshHW(TMesh *tmesh, unsigned int *tex) {
 //play
 void Scene::Play() {
     loadGeometry("geometry/teapot1k.bin");
-    //BuildRoomForMesh();
+    BuildRoomForMesh();
     Render();
 }
 
@@ -192,35 +193,35 @@ void Scene::BuildRoomForMesh() {
     vs[1] = V3(right, down, back);
     vs[2] = V3(right, down, front);
     vs[3] = V3(left, down, front);
-    //AddMeshHW( new TMesh(vs, colors), currTexture);
+    AddMeshHW( new TMesh(vs, colors), tnames[0]);
 
     //Roof
     vs[0] = V3(left, up, back);
     vs[1] = V3(right, up, back);
     vs[2] = V3(right, up, front);
     vs[3] = V3(left, up, front);
-    //AddMeshHW( new TMesh(vs, colors), currTexture);
+    AddMeshHW( new TMesh(vs, colors), tnames[0]);
 
     //Left
     vs[0] = V3(left, down, back);
     vs[1] = V3(left, up, back);
     vs[2] = V3(left, up, front);
     vs[3] = V3(left, down, front);
-    //AddMeshHW( new TMesh(vs, colors), currTexture);
+    AddMeshHW( new TMesh(vs, colors), tnames[0]);
 
     //Right
     vs[0] = V3(right, down, back);
     vs[1] = V3(right, up, back);
     vs[2] = V3(right, up, front);
     vs[3] = V3(right, down, front);
-    //AddMeshHW( new TMesh(vs, colors), currTexture);
+    AddMeshHW( new TMesh(vs, colors), tnames[0]);
 
     //Back
     vs[0] = V3(left, down, back);
     vs[1] = V3(right, down, back);
     vs[2] = V3(right, up, back);
     vs[3] = V3(left, up, back);
-    //AddMeshHW( new TMesh(vs, colors), currTexture);
+    AddMeshHW( new TMesh(vs, colors), tnames[0]);
 }
 
 void Scene::changeBrightness() {
@@ -515,25 +516,47 @@ void Scene::loadTextureHW(const char *filename) {
         exit(1);
     }
 
+    //Load file, populate raster
     unsigned int w, h;
     size_t npixels;
     unsigned int *raster;
-
     TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
     TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
     npixels = w * h;
     raster = (uint32*) _TIFFmalloc(npixels * sizeof (uint32));
     if (raster != NULL) {
-        if (TIFFReadRGBAImage(tif, w, h, raster, 0)) {
-            if (currTexture)
-                delete currTexture;
-            int u0 = w;
-            int v0 = h;
-            currTexture = new FrameBuffer(raster, u0, v0, w, h);
+        if (!TIFFReadRGBAImage(tif, w, h, raster, 0)) {
+            fprintf(stderr, "tiff failed loading texture");
+            exit(1);
         }
         _TIFFfree(raster);
     }
     TIFFClose(tif);
+
+    //Allocate space for textures
+    if (!textures) {
+        textures = new unsigned int*[10];
+        tnames = new unsigned int[10];
+    }
+
+    textures[texN] = raster;
+
+    //Create texture
+    glGenTextures(texN, &tnames[texN]);
+
+    //Bind Texture
+    glBindTexture(GL_TEXTURE_2D, tnames[texN]);
+
+    //Give raster to opengl
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
+                 w, h, 0, GL_RGBA, 
+                 GL_UNSIGNED_BYTE, textures[texN]);
+
+    //Default parameters
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    texN++;
 }
 
 void Scene::loadImage() {

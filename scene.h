@@ -13,6 +13,7 @@ public:
 
   //Textures
   FrameBuffer *currTexture;
+  unsigned int texN;
   unsigned int **textures;
   unsigned int *tnames;
   int tm, tl;
@@ -50,7 +51,7 @@ public:
   void loadGeometry(const char *filename);
   void loadGeometry();
   void AddMesh(TMesh *tmesh, FrameBuffer *tex);
-  void AddMeshHW(TMesh *tmesh, unsigned int *tex);
+  void AddMeshHW(TMesh *tmesh, unsigned int tname);
 
 
   //Lighting

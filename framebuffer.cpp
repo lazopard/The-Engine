@@ -40,6 +40,7 @@ void FrameBuffer::draw() {
         scene->RenderHW();
     }
 }
+
 void FrameBuffer::Set(unsigned int bgr) {
     for (int i = 0; i < w*h; i++) {
         pix[i] = bgr;

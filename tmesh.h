@@ -8,11 +8,15 @@ class TMesh {
     public:
         bool enabled;
 
+        //Vertex parameters
         V3 *verts; //vertices
         V3 *normals; 
         V3 *cols; //colors
-        FrameBuffer *texture;
         float *tcs; // (s, t) texture coordinates
+        unsigned int texID;
+
+        //Software texture
+        FrameBuffer *texture;
 
         int vertsN;
         unsigned int *tris;
@@ -33,7 +37,7 @@ class TMesh {
         void RenderWireframeHW();
         void ClipAABB();
         void AddTexture(FrameBuffer *tex);
-        void AddTextureHW(unsigned int *raster);
+        void AddTextureHW(unsigned int tname);
         void Translate(V3 tv);
         V3 GetCenter();
         void Position(V3 newCenter);

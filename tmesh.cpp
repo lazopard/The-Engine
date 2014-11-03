@@ -13,6 +13,7 @@ TMesh::TMesh() {
     cols = 0;
     tcs = 0;
     texture = 0;
+    texID = -1;
     aabb = 0;
     enabled = false;
 }
@@ -26,6 +27,7 @@ TMesh::TMesh(V3 center, V3 dims, unsigned int color) {
     normals = 0;
     tcs = 0;
     texture = 0;
+    texID = -1;
         
     int vi = 0;
     verts[vi++] = center + V3(-dims[0]/2.0f, +dims[1]/2.0f, +dims[2]/2.0f);
@@ -101,7 +103,7 @@ TMesh::TMesh(V3 center, V3 dims, unsigned int color) {
 
 TMesh::TMesh(V3 *vs, V3 *colors) {
         verts = 0; vertsN = 0; tris = 0; trisN = 0;
-        normals = 0; cols = 0; aabb = 0; enabled = false; tcs = 0; texture = 0;
+        normals = 0; cols = 0; aabb = 0; enabled = false; tcs = 0; texture = 0; texID = -1;
 
         vertsN = 4;
         verts = new V3[vertsN];
@@ -203,7 +205,8 @@ void TMesh::AddTexture(FrameBuffer *tex) {
     texture = new FrameBuffer(tex->pix, 0, 0, tex->w, tex->h);
 }
 
-void TMesh::AddTextureHW(unsigned int *raster) {
+void TMesh::AddTextureHW(unsigned int tname) {
+    texID = tname;
 }
 
 void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb, unsigned int color, V3 L, 
@@ -362,12 +365,17 @@ void TMesh::RenderHW() {
     glNormalPointer(GL_FLOAT, 0, (float*)normals);
 
     //Set texture coordinates
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    glTexCoordPointer(2, GL_FLOAT, 0, tcs);
+    if (texID != -1) {
+        glEnable(GL_TEXTURE_2D);
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        glTexCoordPointer(2, GL_FLOAT, 0, tcs);
+    }
 
-    //Set color array
-    glEnableClientState(GL_COLOR_ARRAY);
-    glColorPointer(3, GL_FLOAT, 0, (float*)cols);
+    else {
+        //Set color array
+        glEnableClientState(GL_COLOR_ARRAY);
+        glColorPointer(3, GL_FLOAT, 0, (float*)cols);
+    }
 
     //Draw
     glDrawElements(GL_TRIANGLES, 3*trisN, GL_UNSIGNED_INT, tris);
@@ -375,8 +383,15 @@ void TMesh::RenderHW() {
     //Disable vertex values
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
-    glDisableClientState(GL_COLOR_ARRAY);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    if (texID != -1) {
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+        glDisable(GL_TEXTURE_2D);
+    }
+
+    else {
+        glDisableClientState(GL_COLOR_ARRAY);
+    }
 }
 
 void TMesh::RenderWireframeHW() {
