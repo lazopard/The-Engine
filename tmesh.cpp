@@ -368,6 +368,7 @@ void TMesh::RenderHW() {
     if (texID != -1) {
         glEnable(GL_TEXTURE_2D);
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        glBindTexture(GL_TEXTURE_2D, texID);
         glTexCoordPointer(2, GL_FLOAT, 0, tcs);
     }
 
@@ -388,6 +389,7 @@ void TMesh::RenderHW() {
         glDisableClientState(GL_TEXTURE_COORD_ARRAY);
         glDisable(GL_TEXTURE_2D);
     }
+    
 
     else {
         glDisableClientState(GL_COLOR_ARRAY);
@@ -450,7 +452,7 @@ void TMesh::LoadBin(const char *fname) {
     }
 
     ifs.read(&yn, 1); // texture coordinates 2 floats
-    float *tcs = 0; // don't have texture coordinates for now
+    //float *tcs = 0; // don't have texture coordinates for now
     if (tcs)
         delete tcs;
     tcs = 0;

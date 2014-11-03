@@ -7,10 +7,19 @@
 #include <tiffio.h>
 #include <float.h>
 #include <limits.h>
+#include <time.h>
+#include <unistd.h>
+#include <sys/time.h>
 
 using namespace std;
 
 Scene *scene;
+double start_t, end_t;
+
+int frameTimes = 0;  
+int frames = 0; 
+double startTime = 0;
+double endTime = 0;
 
 char filename[1024] = "";
 
@@ -32,6 +41,13 @@ Scene::Scene() {
     fb->isHW = true;
     fb->show();
     gui->uiw->position(fb->w+20+20, 50);
+
+    //Animation
+    p = 1;
+    env_built = false;
+
+    //FPS
+    max_fps = 30;
 
     //PPC
     float hfov = 55.0f;
@@ -92,13 +108,7 @@ void Scene::SaveCamera() {
     ppc->Save(chooser.value());
 }
 
-void Scene::Render() {
-
-    if (renderMode == 0) {
-        RenderHW();
-        return;
-    }
-
+void Scene::RenderSW() {
     unsigned int color = 0xFF0000FF;
     fb->Clear(0xFFFFFFFF, 0.0f);
     for (int tmi = 0; tmi < tmeshesN; tmi++) {
@@ -123,11 +133,15 @@ void Scene::RenderHW() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
-    //Lighting
     /*
+    //lighting
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glLightfv(GL_LIGHT0, GL_POSITION, (float*) &l);
+    */
+
+    /*
+    //Shadow mapping
     */
 
     // set the view
@@ -141,11 +155,50 @@ void Scene::RenderHW() {
     for (int tmi = 0; tmi < tmeshesN; tmi++) {
         if (!tmeshes[tmi]->enabled)
             continue;
-        //tmeshes[tmi]->RenderWireframeHW();
+        //tmeshes[tmi]->renderwireframehw();
         tmeshes[tmi]->RenderHW();
     }
 
     fb->redraw();
+}
+
+void startfps() {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    startTime  = (tv.tv_sec) * 1000 + (tv.tv_usec) / 1000 ;
+}
+
+void endfps() {
+
+    //count fps
+    timeval tv;
+    gettimeofday(&tv, NULL);
+    endTime = (tv.tv_sec) * 1000 + (tv.tv_usec) / 1000 ;
+
+    frameTimes = frameTimes + endTime - startTime;  
+    //count one frame  
+    ++frames;  
+
+    //if the difference is greater than 5s, print fps
+    if(frameTimes >= 5000)  {
+
+        fprintf(stderr, "FPS: %d", frames);
+
+        //reset time differences and number of counted frames  
+        frames = 0;  
+        frameTimes = 0; 
+    }
+}
+
+void Scene::Render() {
+    startfps();
+    
+    if (renderMode == 0)
+        RenderHW();
+    else
+        RenderSW();
+
+    endfps();
 }
 
 void Scene::AddMesh(TMesh *tmesh, FrameBuffer *tex) {
@@ -162,11 +215,152 @@ void Scene::AddMeshHW(TMesh *tmesh, unsigned int tname) {
     tmeshesN++;
 }
 
-//play
-void Scene::Play() {
+void Scene::BuildEnvironment() {
+
+    //First teapot with vertex color interpolation
     loadGeometry("geometry/teapot1k.bin");
+
+    //Teapot with texture mapping
+    loadGeometry("geometry/teapot1k.bin");
+    loadTextureHW("ceramic.tiff");
+    tmeshes[1]->AddTextureHW(tnames[0]);
+    tmeshes[1]->Position(tmeshes[0]->GetCenter() + V3(100, 0, 0));
+
+    //Room 
     BuildRoomForMesh();
+    env_built = true;
+    
     Render();
+}
+
+//play
+void Scene::PlayAnimation() {
+
+    ppc->Save("camera_path.txt");
+    PPC ppcInit = *ppc;
+    V3 center1 = tmeshes[0]->GetCenter();
+    V3 center2 = tmeshes[1]->GetCenter();
+    V3 vpv = V3(0, 1, 0);
+    
+    PPC ppc2 = *ppc;
+    ppc2.TranslateX(30);
+    ppc2.TranslateY(30);
+    ppc2.TranslateZ(30);
+    ppc2.PositionAndOrient(ppc2.C, center1, vpv);
+
+    int stepsN = 100;
+    for (int si = 0; si < stepsN; si++) {
+      ppc->SetByInterpolation(ppc, &ppc2, (float) si / (float) (stepsN-1));
+      Render();
+      Fl::check();
+    }
+    ppc->Save("camera_path.txt");
+
+    ppc2 = *ppc;
+    ppc2.TranslateX(-20);
+    ppc2.TranslateY(-20);
+    ppc2.TranslateZ(-20);
+    ppc2.PositionAndOrient(ppc2.C, center2, vpv);
+
+    stepsN = 100;
+    for (int si = 0; si < stepsN; si++) {
+      ppc->SetByInterpolation(ppc, &ppc2, (float) si / (float) (stepsN-1));
+      Render();
+      Fl::check();
+    }
+    ppc->Save("camera_path.txt");
+    
+    ppc2 = *ppc;
+    ppc2.TranslateX(80);
+    ppc2.TranslateY(30);
+    ppc2.TranslateZ(-20);
+    ppc2.PositionAndOrient(ppc2.C, center2, vpv);
+
+    stepsN = 100;
+    for (int si = 0; si < stepsN; si++) {
+      ppc->SetByInterpolation(ppc, &ppc2, (float) si / (float) (stepsN-1));
+      Render();
+      Fl::check();
+    }
+    ppc->Save("camera_path.txt");
+
+    ppc2 = *ppc;
+    ppc2.TranslateX(80);
+    ppc2.TranslateY(30);
+    ppc2.TranslateZ(-40);
+    ppc2.PositionAndOrient(ppc2.C, center2, vpv);
+
+    stepsN = 100;
+    for (int si = 0; si < stepsN; si++) {
+      ppc->SetByInterpolation(ppc, &ppc2, (float) si / (float) (stepsN-1));
+      Render();
+      Fl::check();
+    }
+    ppc->Save("camera_path.txt");
+
+    ppc2 = *ppc;
+    ppc2.Roll(180);
+    ppc2.TranslateZ(-20);
+    //ppc2.PositionAndOrient(ppc2.C, center2, vpv);
+    stepsN = 100;
+
+    for(int si = 0; si < stepsN; si++) {
+        ppc->SetByInterpolation(ppc, &ppc2, (float) si/ (float) (stepsN-1));
+        Render();
+        Fl::check();
+    }
+    ppc->Save("camera_path.txt");
+
+    ppc2 = *ppc;
+    ppc2.TranslateZ(100);
+    //ppc2.PositionAndOrient(ppc2.C, center2, vpv);
+    stepsN = 100;
+
+    for(int si = 0; si < stepsN; si++) {
+        ppc->SetByInterpolation(ppc, &ppc2, (float) si/ (float) (stepsN-1));
+        Render();
+        Fl::check();
+    }
+    ppc->Save("camera_path.txt");
+
+    ppc2 = *ppc;
+    ppc2.PositionAndOrient(ppc2.C, center2, vpv);
+    ppc2.TranslateZ(30);
+    for(int si = 0; si < stepsN; si++) {
+        ppc->SetByInterpolation(ppc, &ppc2, (float) si/ (float) (stepsN-1));
+        Render();
+        Fl::check();
+    }
+    ppc->Save("camera_path.txt");
+
+    ppc2 = *ppc;
+    ppc2.TranslateX(-500);
+    ppc2.TranslateY(-20);
+    ppc2.TranslateZ(-80);
+    ppc2.PositionAndOrient(ppc2.C, center1, vpv);
+
+    stepsN = 600;
+    for(int si = 0; si < stepsN; si++) {
+        ppc->SetByInterpolation(ppc, &ppc2, (float) si/ (float) (stepsN-1));
+        Render();
+        Fl::check();
+    }
+    ppc->Save("camera_path.txt");
+
+    stepsN = 300;
+    for(int si = 0; si < stepsN; si++) {
+        ppc->SetByInterpolation(ppc, &ppcInit, (float) si/ (float) (stepsN-1));
+        Render();
+        Fl::check();
+    }
+    ppc->Save("camera_path.txt");
+
+}
+
+void Scene::Play() {
+    if (!env_built)
+        BuildEnvironment();
+    PlayAnimation();
 }
 
 void Scene::BuildRoomForMesh() {
@@ -178,13 +372,41 @@ void Scene::BuildRoomForMesh() {
     colors[2] = V3(0.0f, 0.0f, 0.0f);
     colors[3] = V3(0.0f, 0.0f, 0.0f);
 
-    float down = tmeshes[tmeshesN-1]->aabb->maxy();
-    float up = tmeshes[tmeshesN-1]->aabb->miny() * 2.5; 
-    float right = tmeshes[tmeshesN-1]->aabb->maxx() * 3;
-    float left = tmeshes[tmeshesN-1]->aabb->minx() * 3;
+    float down = tmeshes[0]->aabb->maxy();
+    float up = tmeshes[0]->aabb->miny() * 2.5; 
+    float right = tmeshes[0]->aabb->maxx() * 3;
+    float left = tmeshes[0]->aabb->minx() * 3;
     //float front = tmeshes[tmeshesN-1]->aabb->minz();
-    float back = tmeshes[tmeshesN-1]->aabb->maxz() * 3;
+    float back = tmeshes[0]->aabb->maxz() * 3;
     float front = ppc->C[2] - 10;
+
+    loadTextureHW("grass.tiff");
+
+    //World Floor
+    vs[0] = V3(-10000, down - 4, 10000);
+    vs[1] = V3(10000, down - 4, 10000);
+    vs[2] = V3(10000, down - 4, -10000);
+    vs[3] = V3(-10000, down - 4, -10000);
+    AddMeshHW( new TMesh(vs, colors), tnames[1]);
+
+    loadTextureHW("sky.tif");
+
+    //World Sky
+    vs[0] = V3(-10000, 110, 10000);
+    vs[1] = V3(10000, 110, 10000);
+    vs[2] = V3(10000, 110, -10000);
+    vs[3] = V3(-10000, 110, -10000);
+    AddMeshHW( new TMesh(vs, colors), tnames[2]);
+
+    loadTextureHW("mountain.tiff");
+
+    //
+    //World Back
+    vs[0] = V3(-10000, -110, back - 2000);
+    vs[1] = V3(10000, -110, back - 2000);
+    vs[2] = V3(10000, 110, back - 2000);
+    vs[3] = V3(-10000, 110, back - 2000);
+    AddMeshHW( new TMesh(vs, colors), tnames[3]);
 
     loadTextureHW("tex1.tiff");
     
@@ -193,35 +415,35 @@ void Scene::BuildRoomForMesh() {
     vs[1] = V3(right, down, back);
     vs[2] = V3(right, down, front);
     vs[3] = V3(left, down, front);
-    AddMeshHW( new TMesh(vs, colors), tnames[0]);
+    AddMeshHW( new TMesh(vs, colors), tnames[4]);
 
     //Roof
     vs[0] = V3(left, up, back);
     vs[1] = V3(right, up, back);
     vs[2] = V3(right, up, front);
     vs[3] = V3(left, up, front);
-    AddMeshHW( new TMesh(vs, colors), tnames[0]);
+    AddMeshHW( new TMesh(vs, colors), tnames[4]);
 
     //Left
     vs[0] = V3(left, down, back);
     vs[1] = V3(left, up, back);
     vs[2] = V3(left, up, front);
     vs[3] = V3(left, down, front);
-    AddMeshHW( new TMesh(vs, colors), tnames[0]);
+    AddMeshHW( new TMesh(vs, colors), tnames[4]);
 
     //Right
     vs[0] = V3(right, down, back);
     vs[1] = V3(right, up, back);
     vs[2] = V3(right, up, front);
     vs[3] = V3(right, down, front);
-    AddMeshHW( new TMesh(vs, colors), tnames[0]);
+    AddMeshHW( new TMesh(vs, colors), tnames[4]);
 
     //Back
     vs[0] = V3(left, down, back);
     vs[1] = V3(right, down, back);
     vs[2] = V3(right, up, back);
     vs[3] = V3(left, up, back);
-    AddMeshHW( new TMesh(vs, colors), tnames[0]);
+    AddMeshHW( new TMesh(vs, colors), tnames[4]);
 }
 
 void Scene::changeBrightness() {
@@ -555,6 +777,19 @@ void Scene::loadTextureHW(const char *filename) {
     //Default parameters
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+
+    // switch to texture mode for projective mapping  
+    glMatrixMode (GL_TEXTURE);  
+    glLoadIdentity ();  
+
+    // converts -1 to 1 into 0 to 1   
+    glTranslatef (1.0f, 1.0f, 1.0f);  
+    glScalef (0.5f, 0.5f, 0.5f);  
+    
+    // our projectors setup and position  
+    gluPerspective (90.0f, 1.0f, 0.1f, 1.0f);  
+    gluLookAt(0.0f, 0.0f, -5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f); 
 
     texN++;
 }
