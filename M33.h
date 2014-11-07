@@ -42,6 +42,5 @@ public:
   // I/O
   friend ostream& operator<<(ostream&, M33&);
   friend istream& operator>>(istream&, M33&);
-
 };
 

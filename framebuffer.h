@@ -4,6 +4,7 @@
 #include <FL/Fl_Gl_Window.H>
 #include <FL/Fl_Menu_Bar.H>
 #include <Fl/Fl_File_Chooser.H>
+#include <GL/glew.h> 
 #include <OpenGL/glu.h>
 #include "M33.h"
 #include "ppc.h"

@@ -5,6 +5,8 @@
 #include "ppc.h"
 #include "tmesh.h"
 
+#include "CGInterface.h"
+
 class Scene {
     public:
         GUI *gui;
@@ -17,6 +19,11 @@ class Scene {
         void Render();
         void RenderSW();
         void RenderHW();
+
+        //Shader based rendering
+        CGInterface *cgi;
+        ShaderOneInterface *soi;
+        void RenderSHW();
 
         //FPS
         double max_fps;

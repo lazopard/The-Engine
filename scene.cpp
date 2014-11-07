@@ -28,6 +28,12 @@ Scene::Scene() {
     //Software vs Hardware rendering
     renderMode = 0;
 
+    //Shader based rendering
+    /*
+    cgi = new CGInterface();
+    soi = new ShaderOneInterface();
+    */
+
     //GUI and Window
     gui = new GUI();
     gui->show();
@@ -127,23 +133,21 @@ void Scene::RenderHW() {
 
     if (!scene)
         return;
-    
-    // clear the framebuffer
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    /* Setup shader programming interfaces */
+
     glEnable(GL_DEPTH_TEST);
 
     /*
-    //lighting
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glLightfv(GL_LIGHT0, GL_POSITION, (float*) &l);
     */
-
-    /*
-    //Shadow mapping
-    */
-
+    
+    // clear the framebuffer
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
     // set the view
     float nearz = 1.0f;
     float farz = 1000.0f;
@@ -151,16 +155,64 @@ void Scene::RenderHW() {
     ppc->SetIntrinsicsHW(nearz, farz);
     ppc->SetExtrinsicsHW();
 
+    /* Enable shaders here */
+
     // draw the tmeshes
     for (int tmi = 0; tmi < tmeshesN; tmi++) {
         if (!tmeshes[tmi]->enabled)
             continue;
-        //tmeshes[tmi]->renderwireframehw();
         tmeshes[tmi]->RenderHW();
     }
 
     fb->redraw();
+
+    /* Disable shaders */
 }
+
+/*
+void Scene::RenderSHW() {
+
+    glEnable(GL_DEPTH_TEST);
+    // initialize textures
+
+    // initialize GPU programming interfaces
+    if (cgi->needInit) {
+        cgi->PerSessionInit();
+        soi->PerSessionInit(cgi);
+    }
+
+    // clear the framebuffer
+    glClearColor(0.0f, 0.0f, 0.5f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // set the view
+    float nearz = 1.0f;
+    float farz = 1000.0f;
+    ppc->SetIntrinsicsHW(nearz, farz);
+    ppc->SetExtrinsicsHW();
+
+    // enable shaders when rendering with shaders
+    bool renderWithShaders = true;
+    if (renderWithShaders) {
+        soi->PerFrameInit();
+        soi->BindPrograms();
+        cgi->EnableProfiles();
+    }
+
+    // draw the tmeshes
+    for (int tmi = 0; tmi < tmeshesN; tmi++) {
+        if (!tmeshes[tmi]->enabled)
+            continue;
+        tmeshes[tmi]->RenderHW();
+    }
+
+    // disable shaders when rendering with shaders
+    if (renderWithShaders) {
+        soi->PerFrameDisable();
+        cgi->DisableProfiles();
+    }
+}
+*/
 
 void startfps() {
     struct timeval tv;
@@ -231,6 +283,37 @@ void Scene::BuildEnvironment() {
     env_built = true;
     
     Render();
+    
+#if 0
+    loadGeometry("geometry/teapot1k.bin");
+    FrameBuffer *checker = new FrameBuffer();
+    checker->SetChecker(size, black, white);
+    V3 vs[4];
+    V3 colors[4];
+    colors[0] = V3(0.0f, 0.0f, 0.0f);
+    colors[1] = V3(0.0f, 0.0f, 0.0f);
+    colors[2] = V3(0.0f, 0.0f, 0.0f);
+    colors[3] = V3(0.0f, 0.0f, 0.0f);
+
+    float down = tmeshes[0]->aabb->maxy();
+    float up = tmeshes[0]->aabb->miny() * 2.5; 
+    float right = tmeshes[0]->aabb->maxx() * 3;
+    float left = tmeshes[0]->aabb->minx() * 3;
+    //float front = tmeshes[tmeshesN-1]->aabb->minz();
+    float back = tmeshes[0]->aabb->maxz() * 3;
+    float front = ppc->C[2] - 10;
+
+    loadTextureHW("grass.tiff");
+
+    //World Floor
+    vs[0] = V3(-10000, down - 4, 10000);
+    vs[1] = V3(10000, down - 4, 10000);
+    vs[2] = V3(10000, down - 4, -10000);
+    vs[3] = V3(-10000, down - 4, -10000);
+    AddMeshHW( new TMesh(vs, colors), tnames[1]);
+
+
+#endif
 }
 
 //play
@@ -777,7 +860,7 @@ void Scene::loadTextureHW(const char *filename) {
     //Default parameters
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_SUBTRACT);
 
     // switch to texture mode for projective mapping  
     glMatrixMode (GL_TEXTURE);  
