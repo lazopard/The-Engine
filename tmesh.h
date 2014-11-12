@@ -8,7 +8,11 @@ class TMesh {
     public:
         bool enabled;
 
+        //Shader program
+        unsigned int shaderProgram;
+
         //Vertex parameters
+        int vertsN;
         V3 *verts; //vertices
         V3 *normals; 
         V3 *cols; //colors
@@ -18,7 +22,7 @@ class TMesh {
         //Software texture
         FrameBuffer *texture;
 
-        int vertsN;
+        // Triangle data
         unsigned int *tris;
         int trisN;
 

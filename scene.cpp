@@ -1,7 +1,9 @@
+//Graphics headers
 #include "scene.h"
 #include "framebuffer.h"
 #include "m33.h"
 
+// Standard Library headers
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>
@@ -13,6 +15,9 @@
 #include <sys/time.h>
 #include <string>
 #include <sstream>
+#include <vector>
+
+using namespace std;
 
 //Rendering modes
 #define RENDERHW 0
@@ -23,7 +28,6 @@
 #define PIXEL 1
 #define GEOMETRY 2
 
-using namespace std;
 
 Scene *scene;
 double start_t, end_t;
@@ -126,6 +130,7 @@ void Scene::SaveCamera() {
     ppc->Save(chooser.value());
 }
 
+//Start fps counter
 void startfps() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
@@ -166,6 +171,7 @@ void Scene::Render() {
     endfps();
 }
 
+//Software rendering
 void Scene::RenderSW() {
     unsigned int color = 0xFF0000FF;
     fb->Clear(0xFFFFFFFF, 0.0f);
@@ -181,12 +187,11 @@ void Scene::RenderSW() {
     fb->redraw();
 }
 
+//Rendering with OpenGL
 void Scene::RenderHW() {
 
     if (!scene)
         return;
-
-    /* Setup shader programming interfaces */
 
     glEnable(GL_DEPTH_TEST);
     
@@ -201,22 +206,19 @@ void Scene::RenderHW() {
     ppc->SetIntrinsicsHW(nearz, farz);
     ppc->SetExtrinsicsHW();
 
-    /* Enable shaders here */
-
     // draw the tmeshes
     for (int tmi = 0; tmi < tmeshesN; tmi++) {
         if (!tmeshes[tmi]->enabled)
             continue;
+        if (tmeshes[tmi]->shaderProgram != -1)
+            glUseProgram(tmeshes[tmi]->shaderProgram);
         tmeshes[tmi]->RenderHW();
     }
 
     fb->redraw();
-
-    /* Disable shaders */
 }
 
-
-
+//Add triangle mesh to scene in software
 void Scene::AddMesh(TMesh *tmesh, FrameBuffer *tex) {
     if (tex != NULL)
         tmesh->AddTexture(tex);
@@ -224,6 +226,7 @@ void Scene::AddMesh(TMesh *tmesh, FrameBuffer *tex) {
     tmeshesN++;
 }
 
+//Add triangle mesh to scene in OpenGL
 void Scene::AddMeshHW(TMesh *tmesh, unsigned int tname) {
     if (tname != UINT_MAX)
         tmesh->AddTextureHW(tname);
@@ -231,6 +234,352 @@ void Scene::AddMeshHW(TMesh *tmesh, unsigned int tname) {
     tmeshesN++;
 }
 
+void Scene::loadShader(const char *filename, int type) {
+
+    //Get shader handlers according to type
+    if (type == VERTEX) {
+       shaders[shadersN] = glCreateShader(GL_VERTEX_SHADER);
+    }
+    else if (type == PIXEL) {
+        shaders[shadersN] = glCreateShader(GL_FRAGMENT_SHADER);
+    }
+    else if (type == GEOMETRY) {
+        shaders[shadersN] = glCreateShader(GL_GEOMETRY_SHADER);
+    }
+
+    // read the shader source from a file
+    std::ifstream t(filename);
+    std::stringstream buffer;
+    buffer << t.rdbuf();
+    const char *shaderSource = buffer.str().c_str();
+
+    // Pass source to GL
+    glShaderSource(shaders[shadersN], 1, &shaderSource, NULL);
+
+    //Compile shader
+    glCompileShader(shaders[shadersN]);
+    
+    //Compilation error checking from opengl.org:
+    GLint isCompiled = 0;
+    glGetShaderiv(shaders[shadersN], GL_COMPILE_STATUS, &isCompiled);
+    if (isCompiled == GL_FALSE) {
+        GLint maxLength = 0;
+        glGetShaderiv(shaders[shadersN], GL_INFO_LOG_LENGTH, &maxLength);
+
+        //The maxLength includes the NULL character
+        std::vector<char> errorLog(maxLength);
+        glGetShaderInfoLog(shaders[shadersN], maxLength, &maxLength, &errorLog[0]);
+
+        //Provide the infolog in whatever manor you deem best.
+        for (int i=0; i < errorLog.size();i++){
+            cerr << errorLog[i] << endl;
+        }
+
+        fprintf(stderr, "Shader failed to compile\n");
+
+        //Exit with failure.
+        glDeleteShader(shaders[shadersN]);
+        exit(1);
+    }
+
+    shadersN++;
+}
+
+void Scene::setupShaderProgram(unsigned int *shaders, int shadersN, int programIndex) {
+
+    sprogram[programN] = glCreateProgram();
+
+    //Attach all shaders, delete when not attached anymore
+    for(int i = 0; i < shadersN; i++) {
+        glAttachShader(sprogram[programN], shaders[i]);
+        glDeleteShader(shaders[i]);
+    }
+
+    //Link program
+    glLinkProgram(sprogram[programN]);
+
+    //Error checking
+    int infologLength = 0;
+    int charsWritten  = 0;
+    char *infoLog;
+    glGetProgramiv(sprogram[programN], GL_INFO_LOG_LENGTH, &infologLength);
+    if (infologLength > 0) {
+        infoLog = (char *)malloc(infologLength);
+        glGetProgramInfoLog(sprogram[programN], infologLength, &charsWritten, infoLog);
+        printf("%s\n",infoLog);
+        free(infoLog);
+        fprintf(stderr, "Shader program failed at linking");
+        exit(1);
+    }
+
+    programN++;
+}
+
+void Scene::loadGeometry(const char *filename) {
+
+    //use load bin and add to tmesh array
+    if (!tmeshes) {
+        tmeshes = new TMesh*[20];
+    }
+    tmeshes[tmeshesN] = new TMesh();
+    tmeshes[tmeshesN]->LoadBin(filename);
+
+    V3 newCenter;
+
+    //first mesh
+    if (tmeshesN == 0) {
+        newCenter = ppc->C;
+        tmeshes[tmeshesN]->Position(newCenter);
+        tmeshes[tmeshesN]->SetAABB();
+        ppc->TranslateZ(-2.5 * tmeshes[tmeshesN]->aabb->width());
+        l = tmeshes[tmeshesN]->GetCenter() + V3(0.0f, 0.0f, 50.0f);
+        tmeshesN++;
+        Render();
+        Fl::check();
+        return;
+    }
+    newCenter = tmeshes[tmeshesN]->GetCenter() + V3(tmeshes[tmeshesN]->aabb->length(), 0, 0);
+    ppc->TranslateX(tmeshes[tmeshesN]->aabb->length() / 3.0f);
+    tmeshes[tmeshesN]->Position(newCenter);
+    tmeshesN++;
+    Render();
+    Fl::check();
+}
+
+void Scene::loadGeometry() {
+    Fl_File_Chooser chooser(".",                        // directory
+                            "*",                        // filter
+                            Fl_File_Chooser::SINGLE,     // chooser type
+                            "Open...");        // title
+    chooser.show();
+     while(chooser.shown())
+    { Fl::wait(); }
+
+    // User hit cancel?
+    if ( chooser.value() == NULL )
+    { fprintf(stderr, "(User hit 'Cancel')\n"); return; }
+
+    //use load bin and add to tmesh array
+    if (!tmeshes) {
+        tmeshes = new TMesh*[20];
+    }
+    tmeshes[tmeshesN] = new TMesh();
+    tmeshes[tmeshesN]->LoadBin(chooser.value());
+
+    V3 newCenter;
+
+    //first mesh
+    if (tmeshesN == 0) {
+        newCenter = ppc->C;
+        tmeshes[tmeshesN]->Position(newCenter);
+        tmeshes[tmeshesN]->SetAABB();
+        ppc->TranslateZ(-2.5 * tmeshes[tmeshesN]->aabb->width());
+        l = tmeshes[tmeshesN]->GetCenter() + V3(0.0f, 0.0f, 50);
+        tmeshesN++;
+        Render();
+        Fl::check();
+        return;
+    }
+    newCenter = tmeshes[tmeshesN]->GetCenter() + V3(tmeshes[tmeshesN]->aabb->length(), 0, 0);
+    ppc->TranslateX(tmeshes[tmeshesN]->aabb->length() / 3.0f);
+    tmeshes[tmeshesN]->Position(newCenter);
+    tmeshesN++;
+    Render();
+    Fl::check();
+}
+
+void Scene::loadTexture(const char *filename) {
+    TIFF *tif = TIFFOpen(filename, "r");
+    if (!tif) {
+        fprintf(stderr, "TIFFOpen failed\n");
+        exit(1);
+    }
+
+    unsigned int w, h;
+    size_t npixels;
+    unsigned int *raster;
+
+    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
+    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
+    npixels = w * h;
+    raster = (uint32*) _TIFFmalloc(npixels * sizeof (uint32));
+    if (raster != NULL) {
+        if (TIFFReadRGBAImage(tif, w, h, raster, 0)) {
+            if (currTexture)
+                delete currTexture;
+            int u0 = w;
+            int v0 = h;
+            currTexture = new FrameBuffer(raster, u0, v0, w, h);
+        }
+        _TIFFfree(raster);
+    }
+    TIFFClose(tif);
+}
+
+void Scene::loadTextureHW(const char *filename) {
+    TIFF *tif = TIFFOpen(filename, "r");
+    if (!tif) {
+        fprintf(stderr, "TIFFOpen failed\n");
+        exit(1);
+    }
+
+    //Load file, populate raster
+    unsigned int w, h;
+    size_t npixels;
+    unsigned int *raster;
+    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
+    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
+    npixels = w * h;
+    raster = (uint32*) _TIFFmalloc(npixels * sizeof (uint32));
+    if (raster != NULL) {
+        if (!TIFFReadRGBAImage(tif, w, h, raster, 0)) {
+            fprintf(stderr, "tiff failed loading texture");
+            exit(1);
+        }
+        _TIFFfree(raster);
+    }
+    TIFFClose(tif);
+
+    //Allocate space for textures
+    if (!textures) {
+        textures = new unsigned int*[10];
+        tnames = new unsigned int[10];
+    }
+
+    textures[texN] = raster;
+
+    //Create texture
+    glGenTextures(texN, &tnames[texN]);
+
+    //Bind Texture
+    glBindTexture(GL_TEXTURE_2D, tnames[texN]);
+
+    //Give raster to opengl
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
+                 w, h, 0, GL_RGBA, 
+                 GL_UNSIGNED_BYTE, textures[texN]);
+
+    //Default parameters
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_SUBTRACT);
+
+    // switch to texture mode for projective mapping  
+    glMatrixMode (GL_TEXTURE);  
+    glLoadIdentity();  
+
+    // converts -1 to 1 into 0 to 1   
+    glTranslatef (1.0f, 1.0f, 1.0f);  
+    glScalef (0.5f, 0.5f, 0.5f);  
+    
+    // our projectors setup and position  
+    gluPerspective (90.0f, 1.0f, 0.1f, 1.0f);  
+    gluLookAt(0.0f, 0.0f, -5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f); 
+
+    texN++;
+}
+
+void Scene::loadImage() {
+    Fl_File_Chooser chooser(".",                        // directory
+            "*",                        // filter
+            Fl_File_Chooser::SINGLE,     // chooser type
+            "Open...");        // title
+    chooser.show();
+     while(chooser.shown())
+    { Fl::wait(); }
+
+    // User hit cancel?
+    if ( chooser.value() == NULL )
+    { fprintf(stderr, "(User hit 'Cancel')\n"); return; }
+
+    TIFF *tif = TIFFOpen(chooser.value(), "r");
+    if (!tif) {
+        fprintf(stderr, "TIFFOpen failed\n");
+        exit(1);
+    }
+
+    unsigned int w, h;
+    size_t npixels;
+    unsigned int *raster;
+
+    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
+    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
+    npixels = w * h;
+    raster = (uint32*) _TIFFmalloc(npixels * sizeof (uint32));
+    if (raster != NULL) {
+        if (TIFFReadRGBAImage(tif, w, h, raster, 0)) {
+            //fb->hide();
+            delete fb;
+            int u0 = w;
+            int v0 = h;
+            fb = new FrameBuffer(raster, u0, v0, w, h);
+            fb->label(chooser.value());
+            fb->show();
+        }
+        _TIFFfree(raster);
+    }
+    TIFFClose(tif);
+}
+
+void Scene::saveTiff(const char *filename) {
+    TIFF *tif = TIFFOpen(filename, "w");
+    if (!tif) {
+        fprintf(stderr, "TIFFOPEN failed\n");
+        exit(1);
+    }
+
+    //Get tags
+    uint16 out[1];
+    out[0] = EXTRASAMPLE_ASSOCALPHA;
+    unsigned int samplePerPixel = 4;
+    unsigned int bitsPerSample = 8;
+
+    //Set tags
+    TIFFSetField(tif,TIFFTAG_IMAGEWIDTH, fb->w);
+    TIFFSetField(tif,TIFFTAG_IMAGELENGTH, fb->h);
+    TIFFSetField(tif,TIFFTAG_ORIENTATION,ORIENTATION_TOPLEFT);
+    TIFFSetField(tif,TIFFTAG_SAMPLESPERPIXEL,samplePerPixel);
+    TIFFSetField(tif,TIFFTAG_EXTRASAMPLES,EXTRASAMPLE_ASSOCALPHA, &out);
+    TIFFSetField(tif,TIFFTAG_BITSPERSAMPLE,bitsPerSample);
+    TIFFSetField(tif,TIFFTAG_PLANARCONFIG,PLANARCONFIG_CONTIG);
+    TIFFSetField(tif,TIFFTAG_PHOTOMETRIC,PHOTOMETRIC_RGB);
+    TIFFSetField(tif,TIFFTAG_ROWSPERSTRIP, TIFFDefaultStripSize(tif, fb->w*samplePerPixel));
+
+    unsigned int *buf = (unsigned int *) _TIFFmalloc(fb->w*4);
+
+    for (int row = 0; row < fb->h; row++) {
+        memcpy(buf, &(fb->pix[(fb->h - row - 1)*fb->w]), fb->w*4);
+        if (TIFFWriteScanline(tif, buf, row, 0) < 0)
+            break;
+    }
+
+    if (buf)
+        _TIFFfree(buf);
+    TIFFClose(tif);
+
+}
+
+void Scene::saveImage() {
+    Fl_File_Chooser chooser(".",
+                            "*",
+                            Fl_File_Chooser::CREATE,
+                            "Save File as...");
+    chooser.show();
+    while(chooser.shown())
+    { Fl::wait(); }
+
+    // User hit cancel
+    if ( chooser.value() == NULL )
+    { fprintf(stderr, "(User hit 'Cancel')\n"); return; }
+
+    saveTiff(chooser.value());
+}
+
+//
+// GUI and animation functions below
+//
+
+//World building functions
 void Scene::BuildEnvironment() {
 
     //First teapot with vertex color interpolation
@@ -410,6 +759,7 @@ void Scene::Play() {
     PlayAnimation();
 }
 
+//Build room around first mesh
 void Scene::BuildRoomForMesh() {
 
     V3 vs[4];
@@ -674,334 +1024,5 @@ void Scene::tmNN(){
     tm = 1;
     Render();
     Fl::check();
-}
-
-void Scene::loadShader(const char *filename, int type) {
-
-    //Get shader handlers according to type
-    if (type == VERTEX) {
-       shaders[shadersN] = glCreateShader(GL_VERTEX_SHADER);
-    }
-    else if (type == PIXEL) {
-        shaders[shadersN] = glCreateShader(GL_FRAGMENT_SHADER);
-    }
-    else if (type == GEOMETRY) {
-        shaders[shadersN] = glCreateShader(GL_GEOMETRY_SHADER);
-    }
-
-    // read the shader source from a file
-    std::ifstream t(filename);
-    std::stringstream buffer;
-    buffer << t.rdbuf();
-    const char *shaderSource = buffer.str().c_str();
-
-    // Pass source to GL
-    glShaderSource(shaders[shadersN], 1, &shaderSource, NULL);
-
-    //Compile shader
-    glCompileShader(shaders[shadersN]);
-
-    
-    /*
-    //Compilation error checking from opengl.org:
-    GLint isCompiled = 0;
-    glGetShaderiv(shaders[shadersN], GL_COMPILE_STATUS, &isCompiled);
-    if(isCompiled == GL_FALSE)
-    {
-        GLint maxLength = 0;
-        glGetShaderiv(shaders[shadersN], GL_INFO_LOG_LENGTH, &maxLength);
-
-        //The maxLength includes the NULL character
-        std::vector<char> errorLog(maxLength);
-        glGetShaderInfoLog(vertexshader, maxLength, &maxLength, &errorLog[0]);
-
-        //Provide the infolog in whatever manor you deem best.
-        for (int i=0; i < errorLog.size();i++){
-            cerr << errorLog.size[i] << endl;
-        }
-
-        //Exit with failure.
-        glDeleteShader(shader); //Don't leak the shader.
-        exit(1);
-    }
-    */
-
-    shadersN++;
-}
-
-void Scene::setupShaderProgram(unsigned int *shaders, int shadersN, int programIndex) {
-
-    sprogram[programN] = glCreateProgram();
-
-    //Attach all shaders
-    for(int i = 0; i < shadersN; i++) {
-        glAttachShader(sprogram[programN], shaders[i]);
-        glDeleteShader(shaders[i]);
-    }
-
-    //Link program
-    glLinkProgram(sprogram[programN]);
-
-    programN++;
-}
-
-void Scene::loadGeometry(const char *filename) {
-
-    //use load bin and add to tmesh array
-    if (!tmeshes) {
-        tmeshes = new TMesh*[20];
-    }
-    tmeshes[tmeshesN] = new TMesh();
-    tmeshes[tmeshesN]->LoadBin(filename);
-
-    V3 newCenter;
-
-    //first mesh
-    if (tmeshesN == 0) {
-        newCenter = ppc->C;
-        tmeshes[tmeshesN]->Position(newCenter);
-        tmeshes[tmeshesN]->SetAABB();
-        ppc->TranslateZ(-2.5 * tmeshes[tmeshesN]->aabb->width());
-        l = tmeshes[tmeshesN]->GetCenter() + V3(0.0f, 0.0f, 50.0f);
-        tmeshesN++;
-        Render();
-        Fl::check();
-        return;
-    }
-    newCenter = tmeshes[tmeshesN]->GetCenter() + V3(tmeshes[tmeshesN]->aabb->length(), 0, 0);
-    ppc->TranslateX(tmeshes[tmeshesN]->aabb->length() / 3.0f);
-    tmeshes[tmeshesN]->Position(newCenter);
-    tmeshesN++;
-    Render();
-    Fl::check();
-}
-
-void Scene::loadGeometry() {
-    Fl_File_Chooser chooser(".",                        // directory
-                            "*",                        // filter
-                            Fl_File_Chooser::SINGLE,     // chooser type
-                            "Open...");        // title
-    chooser.show();
-     while(chooser.shown())
-    { Fl::wait(); }
-
-    // User hit cancel?
-    if ( chooser.value() == NULL )
-    { fprintf(stderr, "(User hit 'Cancel')\n"); return; }
-
-    //use load bin and add to tmesh array
-    if (!tmeshes) {
-        tmeshes = new TMesh*[20];
-    }
-    tmeshes[tmeshesN] = new TMesh();
-    tmeshes[tmeshesN]->LoadBin(chooser.value());
-
-    V3 newCenter;
-
-    //first mesh
-    if (tmeshesN == 0) {
-        newCenter = ppc->C;
-        tmeshes[tmeshesN]->Position(newCenter);
-        tmeshes[tmeshesN]->SetAABB();
-        ppc->TranslateZ(-2.5 * tmeshes[tmeshesN]->aabb->width());
-        l = tmeshes[tmeshesN]->GetCenter() + V3(0.0f, 0.0f, 50);
-        tmeshesN++;
-        Render();
-        Fl::check();
-        return;
-    }
-    newCenter = tmeshes[tmeshesN]->GetCenter() + V3(tmeshes[tmeshesN]->aabb->length(), 0, 0);
-    ppc->TranslateX(tmeshes[tmeshesN]->aabb->length() / 3.0f);
-    tmeshes[tmeshesN]->Position(newCenter);
-    tmeshesN++;
-    Render();
-    Fl::check();
-}
-
-void Scene::loadTexture(const char *filename) {
-    TIFF *tif = TIFFOpen(filename, "r");
-    if (!tif) {
-        fprintf(stderr, "TIFFOpen failed\n");
-        exit(1);
-    }
-
-    unsigned int w, h;
-    size_t npixels;
-    unsigned int *raster;
-
-    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
-    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
-    npixels = w * h;
-    raster = (uint32*) _TIFFmalloc(npixels * sizeof (uint32));
-    if (raster != NULL) {
-        if (TIFFReadRGBAImage(tif, w, h, raster, 0)) {
-            if (currTexture)
-                delete currTexture;
-            int u0 = w;
-            int v0 = h;
-            currTexture = new FrameBuffer(raster, u0, v0, w, h);
-        }
-        _TIFFfree(raster);
-    }
-    TIFFClose(tif);
-}
-
-void Scene::loadTextureHW(const char *filename) {
-    TIFF *tif = TIFFOpen(filename, "r");
-    if (!tif) {
-        fprintf(stderr, "TIFFOpen failed\n");
-        exit(1);
-    }
-
-    //Load file, populate raster
-    unsigned int w, h;
-    size_t npixels;
-    unsigned int *raster;
-    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
-    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
-    npixels = w * h;
-    raster = (uint32*) _TIFFmalloc(npixels * sizeof (uint32));
-    if (raster != NULL) {
-        if (!TIFFReadRGBAImage(tif, w, h, raster, 0)) {
-            fprintf(stderr, "tiff failed loading texture");
-            exit(1);
-        }
-        _TIFFfree(raster);
-    }
-    TIFFClose(tif);
-
-    //Allocate space for textures
-    if (!textures) {
-        textures = new unsigned int*[10];
-        tnames = new unsigned int[10];
-    }
-
-    textures[texN] = raster;
-
-    //Create texture
-    glGenTextures(texN, &tnames[texN]);
-
-    //Bind Texture
-    glBindTexture(GL_TEXTURE_2D, tnames[texN]);
-
-    //Give raster to opengl
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
-                 w, h, 0, GL_RGBA, 
-                 GL_UNSIGNED_BYTE, textures[texN]);
-
-    //Default parameters
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_SUBTRACT);
-
-    // switch to texture mode for projective mapping  
-    glMatrixMode (GL_TEXTURE);  
-    glLoadIdentity();  
-
-    // converts -1 to 1 into 0 to 1   
-    glTranslatef (1.0f, 1.0f, 1.0f);  
-    glScalef (0.5f, 0.5f, 0.5f);  
-    
-    // our projectors setup and position  
-    gluPerspective (90.0f, 1.0f, 0.1f, 1.0f);  
-    gluLookAt(0.0f, 0.0f, -5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f); 
-
-    texN++;
-}
-
-void Scene::loadImage() {
-    Fl_File_Chooser chooser(".",                        // directory
-            "*",                        // filter
-            Fl_File_Chooser::SINGLE,     // chooser type
-            "Open...");        // title
-    chooser.show();
-     while(chooser.shown())
-    { Fl::wait(); }
-
-    // User hit cancel?
-    if ( chooser.value() == NULL )
-    { fprintf(stderr, "(User hit 'Cancel')\n"); return; }
-
-    TIFF *tif = TIFFOpen(chooser.value(), "r");
-    if (!tif) {
-        fprintf(stderr, "TIFFOpen failed\n");
-        exit(1);
-    }
-
-    unsigned int w, h;
-    size_t npixels;
-    unsigned int *raster;
-
-    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
-    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
-    npixels = w * h;
-    raster = (uint32*) _TIFFmalloc(npixels * sizeof (uint32));
-    if (raster != NULL) {
-        if (TIFFReadRGBAImage(tif, w, h, raster, 0)) {
-            //fb->hide();
-            delete fb;
-            int u0 = w;
-            int v0 = h;
-            fb = new FrameBuffer(raster, u0, v0, w, h);
-            fb->label(chooser.value());
-            fb->show();
-        }
-        _TIFFfree(raster);
-    }
-    TIFFClose(tif);
-}
-
-void Scene::saveTiff(const char *filename) {
-    TIFF *tif = TIFFOpen(filename, "w");
-    if (!tif) {
-        fprintf(stderr, "TIFFOPEN failed\n");
-        exit(1);
-    }
-
-    //Get tags
-    uint16 out[1];
-    out[0] = EXTRASAMPLE_ASSOCALPHA;
-    unsigned int samplePerPixel = 4;
-    unsigned int bitsPerSample = 8;
-
-    //Set tags
-    TIFFSetField(tif,TIFFTAG_IMAGEWIDTH, fb->w);
-    TIFFSetField(tif,TIFFTAG_IMAGELENGTH, fb->h);
-    TIFFSetField(tif,TIFFTAG_ORIENTATION,ORIENTATION_TOPLEFT);
-    TIFFSetField(tif,TIFFTAG_SAMPLESPERPIXEL,samplePerPixel);
-    TIFFSetField(tif,TIFFTAG_EXTRASAMPLES,EXTRASAMPLE_ASSOCALPHA, &out);
-    TIFFSetField(tif,TIFFTAG_BITSPERSAMPLE,bitsPerSample);
-    TIFFSetField(tif,TIFFTAG_PLANARCONFIG,PLANARCONFIG_CONTIG);
-    TIFFSetField(tif,TIFFTAG_PHOTOMETRIC,PHOTOMETRIC_RGB);
-    TIFFSetField(tif,TIFFTAG_ROWSPERSTRIP, TIFFDefaultStripSize(tif, fb->w*samplePerPixel));
-
-    unsigned int *buf = (unsigned int *) _TIFFmalloc(fb->w*4);
-
-    for (int row = 0; row < fb->h; row++) {
-        memcpy(buf, &(fb->pix[(fb->h - row - 1)*fb->w]), fb->w*4);
-        if (TIFFWriteScanline(tif, buf, row, 0) < 0)
-            break;
-    }
-
-    if (buf)
-        _TIFFfree(buf);
-    TIFFClose(tif);
-
-}
-
-void Scene::saveImage() {
-    Fl_File_Chooser chooser(".",
-                            "*",
-                            Fl_File_Chooser::CREATE,
-                            "Save File as...");
-    chooser.show();
-    while(chooser.shown())
-    { Fl::wait(); }
-
-    // User hit cancel
-    if ( chooser.value() == NULL )
-    { fprintf(stderr, "(User hit 'Cancel')\n"); return; }
-
-    saveTiff(chooser.value());
 }
 
