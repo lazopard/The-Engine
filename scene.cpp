@@ -1,4 +1,5 @@
 #include "scene.h"
+#include "framebuffer.h"
 #include "m33.h"
 
 #include <stdlib.h>
@@ -10,6 +11,17 @@
 #include <time.h>
 #include <unistd.h>
 #include <sys/time.h>
+#include <string>
+#include <sstream>
+
+//Rendering modes
+#define RENDERHW 0
+#define RENDERSW 1
+
+//Shader types
+#define VERTEX 0
+#define PIXEL 1
+#define GEOMETRY 2
 
 using namespace std;
 
@@ -26,13 +38,7 @@ char filename[1024] = "";
 Scene::Scene() {
 
     //Software vs Hardware rendering
-    renderMode = 0;
-
-    //Shader based rendering
-    /*
-    cgi = new CGInterface();
-    soi = new ShaderOneInterface();
-    */
+    renderMode = RENDERHW;
 
     //GUI and Window
     gui = new GUI();
@@ -72,10 +78,16 @@ Scene::Scene() {
     tnames = 0;
     texN = 0;
 
+    //Shaders
+    shadersN = 0;
+    shaders = 0;
+    programN = 0;
+    sprogram = 0;
+
     // Tmeshes
     tmeshesN = 0;
     tmeshes = 0;
-
+    
     Render();
 }
 
@@ -114,106 +126,6 @@ void Scene::SaveCamera() {
     ppc->Save(chooser.value());
 }
 
-void Scene::RenderSW() {
-    unsigned int color = 0xFF0000FF;
-    fb->Clear(0xFFFFFFFF, 0.0f);
-    for (int tmi = 0; tmi < tmeshesN; tmi++) {
-        if (!tmeshes[tmi]->enabled)
-            continue;
-        if (tmeshes[tmi]->trisN == 0)
-            tmeshes[tmi]->RenderPoints(ppc, fb, 1);
-        else {
-            tmeshes[tmi]->RenderFilled(ppc, fb, color, l, ka, se, tm, tl);
-        }
-    }
-    fb->redraw();
-}
-
-void Scene::RenderHW() {
-
-    if (!scene)
-        return;
-
-    /* Setup shader programming interfaces */
-
-    glEnable(GL_DEPTH_TEST);
-
-    /*
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-    glLightfv(GL_LIGHT0, GL_POSITION, (float*) &l);
-    */
-    
-    // clear the framebuffer
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-    // set the view
-    float nearz = 1.0f;
-    float farz = 1000.0f;
-    glLoadIdentity();
-    ppc->SetIntrinsicsHW(nearz, farz);
-    ppc->SetExtrinsicsHW();
-
-    /* Enable shaders here */
-
-    // draw the tmeshes
-    for (int tmi = 0; tmi < tmeshesN; tmi++) {
-        if (!tmeshes[tmi]->enabled)
-            continue;
-        tmeshes[tmi]->RenderHW();
-    }
-
-    fb->redraw();
-
-    /* Disable shaders */
-}
-
-/*
-void Scene::RenderSHW() {
-
-    glEnable(GL_DEPTH_TEST);
-    // initialize textures
-
-    // initialize GPU programming interfaces
-    if (cgi->needInit) {
-        cgi->PerSessionInit();
-        soi->PerSessionInit(cgi);
-    }
-
-    // clear the framebuffer
-    glClearColor(0.0f, 0.0f, 0.5f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // set the view
-    float nearz = 1.0f;
-    float farz = 1000.0f;
-    ppc->SetIntrinsicsHW(nearz, farz);
-    ppc->SetExtrinsicsHW();
-
-    // enable shaders when rendering with shaders
-    bool renderWithShaders = true;
-    if (renderWithShaders) {
-        soi->PerFrameInit();
-        soi->BindPrograms();
-        cgi->EnableProfiles();
-    }
-
-    // draw the tmeshes
-    for (int tmi = 0; tmi < tmeshesN; tmi++) {
-        if (!tmeshes[tmi]->enabled)
-            continue;
-        tmeshes[tmi]->RenderHW();
-    }
-
-    // disable shaders when rendering with shaders
-    if (renderWithShaders) {
-        soi->PerFrameDisable();
-        cgi->DisableProfiles();
-    }
-}
-*/
-
 void startfps() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
@@ -243,15 +155,67 @@ void endfps() {
 }
 
 void Scene::Render() {
+
     startfps();
     
-    if (renderMode == 0)
+    if (renderMode == RENDERHW)
         RenderHW();
     else
         RenderSW();
 
     endfps();
 }
+
+void Scene::RenderSW() {
+    unsigned int color = 0xFF0000FF;
+    fb->Clear(0xFFFFFFFF, 0.0f);
+    for (int tmi = 0; tmi < tmeshesN; tmi++) {
+        if (!tmeshes[tmi]->enabled)
+            continue;
+        if (tmeshes[tmi]->trisN == 0)
+            tmeshes[tmi]->RenderPoints(ppc, fb, 1);
+        else {
+            tmeshes[tmi]->RenderFilled(ppc, fb, color, l, ka, se, tm, tl);
+        }
+    }
+    fb->redraw();
+}
+
+void Scene::RenderHW() {
+
+    if (!scene)
+        return;
+
+    /* Setup shader programming interfaces */
+
+    glEnable(GL_DEPTH_TEST);
+    
+    // clear the framebuffer
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    // set the view
+    float nearz = 1.0f;
+    float farz = 1000.0f;
+    glLoadIdentity();
+    ppc->SetIntrinsicsHW(nearz, farz);
+    ppc->SetExtrinsicsHW();
+
+    /* Enable shaders here */
+
+    // draw the tmeshes
+    for (int tmi = 0; tmi < tmeshesN; tmi++) {
+        if (!tmeshes[tmi]->enabled)
+            continue;
+        tmeshes[tmi]->RenderHW();
+    }
+
+    fb->redraw();
+
+    /* Disable shaders */
+}
+
+
 
 void Scene::AddMesh(TMesh *tmesh, FrameBuffer *tex) {
     if (tex != NULL)
@@ -483,7 +447,6 @@ void Scene::BuildRoomForMesh() {
 
     loadTextureHW("mountain.tiff");
 
-    //
     //World Back
     vs[0] = V3(-10000, -110, back - 2000);
     vs[1] = V3(10000, -110, back - 2000);
@@ -713,6 +676,75 @@ void Scene::tmNN(){
     Fl::check();
 }
 
+void Scene::loadShader(const char *filename, int type) {
+
+    //Get shader handlers according to type
+    if (type == VERTEX) {
+       shaders[shadersN] = glCreateShader(GL_VERTEX_SHADER);
+    }
+    else if (type == PIXEL) {
+        shaders[shadersN] = glCreateShader(GL_FRAGMENT_SHADER);
+    }
+    else if (type == GEOMETRY) {
+        shaders[shadersN] = glCreateShader(GL_GEOMETRY_SHADER);
+    }
+
+    // read the shader source from a file
+    std::ifstream t(filename);
+    std::stringstream buffer;
+    buffer << t.rdbuf();
+    const char *shaderSource = buffer.str().c_str();
+
+    // Pass source to GL
+    glShaderSource(shaders[shadersN], 1, &shaderSource, NULL);
+
+    //Compile shader
+    glCompileShader(shaders[shadersN]);
+
+    
+    /*
+    //Compilation error checking from opengl.org:
+    GLint isCompiled = 0;
+    glGetShaderiv(shaders[shadersN], GL_COMPILE_STATUS, &isCompiled);
+    if(isCompiled == GL_FALSE)
+    {
+        GLint maxLength = 0;
+        glGetShaderiv(shaders[shadersN], GL_INFO_LOG_LENGTH, &maxLength);
+
+        //The maxLength includes the NULL character
+        std::vector<char> errorLog(maxLength);
+        glGetShaderInfoLog(vertexshader, maxLength, &maxLength, &errorLog[0]);
+
+        //Provide the infolog in whatever manor you deem best.
+        for (int i=0; i < errorLog.size();i++){
+            cerr << errorLog.size[i] << endl;
+        }
+
+        //Exit with failure.
+        glDeleteShader(shader); //Don't leak the shader.
+        exit(1);
+    }
+    */
+
+    shadersN++;
+}
+
+void Scene::setupShaderProgram(unsigned int *shaders, int shadersN, int programIndex) {
+
+    sprogram[programN] = glCreateProgram();
+
+    //Attach all shaders
+    for(int i = 0; i < shadersN; i++) {
+        glAttachShader(sprogram[programN], shaders[i]);
+        glDeleteShader(shaders[i]);
+    }
+
+    //Link program
+    glLinkProgram(sprogram[programN]);
+
+    programN++;
+}
+
 void Scene::loadGeometry(const char *filename) {
 
     //use load bin and add to tmesh array
@@ -864,7 +896,7 @@ void Scene::loadTextureHW(const char *filename) {
 
     // switch to texture mode for projective mapping  
     glMatrixMode (GL_TEXTURE);  
-    glLoadIdentity ();  
+    glLoadIdentity();  
 
     // converts -1 to 1 into 0 to 1   
     glTranslatef (1.0f, 1.0f, 1.0f);  

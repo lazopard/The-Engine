@@ -23,7 +23,11 @@ class Scene {
         //Shader based rendering
         CGInterface *cgi;
         ShaderOneInterface *soi;
+        int shadersN, programN;
+        unsigned int *shaders, *sprogram;
         void RenderSHW();
+        void loadShader(const char *filename, int type);
+        void setupShaderProgram(unsigned int *shaders, int shadersN, int programIndex);
 
         //FPS
         double max_fps;

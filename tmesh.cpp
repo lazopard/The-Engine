@@ -209,6 +209,12 @@ void TMesh::AddTextureHW(unsigned int tname) {
     texID = tname;
 }
 
+/*
+void TMesh::AddShader(unsigned int shaderID) {
+    shader = shaderID;
+}
+*/
+
 void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb, unsigned int color, V3 L, 
                          float ka, float se, int tm, int tl) 
 {

@@ -48,7 +48,6 @@ PixelDataOutput FragmentMain(VertexDataOutput pdi,
 //  ret.color.b = ret.color.b + (1.0f-ret.color.b)*blueHue;
 //  ret.color.rgb = float3(blueHue, blueHue, blueHue);
   return ret;
-    
 }
 
 
